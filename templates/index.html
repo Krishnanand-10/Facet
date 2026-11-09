@@ -62,6 +62,57 @@
             padding: 0 16px;
         }
 
+        /* TAB NAVIGATION */
+        .tabs-header {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 22px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 2px;
+        }
+
+        .tab-btn {
+            padding: 13px 26px;
+            background: #ffffff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            border-bottom: 3px solid transparent;
+            border-radius: 8px 8px 0 0;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            color: #14213d;
+            background: #f8fafc;
+        }
+
+        .tab-btn.active {
+            color: #2874a6;
+            border-bottom-color: #2874a6;
+            background: #ffffff;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeInTab 0.2s ease-out;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeInTab {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -379,192 +430,261 @@
 
 <div class="container">
 
-    <!-- STATISTICS OVERVIEW -->
-    <div class="stats">
-        <div class="stat-card">
-            <h3>Total Registered Students</h3>
-            <div class="number">{{ total_students }}</div>
-        </div>
-        <div class="stat-card green-border">
-            <h3>Today's Attendance</h3>
-            <div class="number">{{ today_attendance }}</div>
-        </div>
+    <!-- TABS NAVIGATION -->
+    <div class="tabs-header">
+        <button id="btnTabTrain" class="tab-btn active" onclick="switchTab('train')">
+            <span>📸</span> Tab 1: Student Enrollment & Model Training
+        </button>
+        <button id="btnTabAttendance" class="tab-btn" onclick="switchTab('attendance')">
+            <span>📋</span> Tab 2: Attendance Registration & Records
+        </button>
     </div>
 
-    <div class="main-grid">
+    <!-- TAB 1: MODEL TRAINING & STUDENT ENROLLMENT -->
+    <div id="tabTrain" class="tab-pane active">
 
-        <!-- STUDENT REGISTRATION & SAMPLES -->
-        <div class="card">
-            <h2>1. Student Registration</h2>
-
-            <form id="studentForm">
-                <input type="text" id="name" placeholder="Full Student Name" required>
-                <input type="text" id="roll" placeholder="Roll Number (Unique)" required>
-                <div class="form-row">
-                    <input type="text" id="department" placeholder="Department (e.g. MCA)">
-                    <input type="text" id="semester" placeholder="Semester (e.g. Sem 4)">
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Registered Students</h3>
+                <div class="number">{{ total_students }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Model Training Status</h3>
+                <div class="number" style="font-size: 20px; color: {% if model_ready %}#218838{% else %}#e58b16{% endif %};">
+                    {% if model_ready %}● Model Trained & Ready{% else %}○ Model Untrained{% endif %}
                 </div>
-                <button type="submit" class="btn" style="width: 100%; margin-top: 6px;">Register Student Profile</button>
-            </form>
-
-            <div id="registerMessage" class="message">
-                Fill the form above to add a student, then capture face samples.
-            </div>
-
-            <h3 style="margin-top: 26px;">2. Face Sample Collection</h3>
-
-            <!-- Active Student Indicator -->
-            <div id="activeStudentBanner" class="active-student-banner" style="display: none;">
-                Selected Student: <span id="activeStudentLabel">None</span>
-            </div>
-
-            <label for="selectStudent" style="font-size: 13px; font-weight: 600; color: #555;">Or Select Existing Student to Add Samples:</label>
-            <select id="selectStudent" onchange="onSelectExistingStudent(this.value)">
-                <option value="">-- Choose a student --</option>
-                {% for student in students %}
-                <option value="{{ student.id }}" data-name="{{ student.name }}" data-roll="{{ student.roll_number }}">
-                    {{ student.name }} (Roll: {{ student.roll_number }}, ID: {{ student.id }})
-                </option>
-                {% endfor %}
-            </select>
-
-            <div class="btn-group">
-                <button class="btn-green" onclick="captureFace()">
-                    Capture Face Sample
-                </button>
-                <button class="btn-orange" onclick="trainModel()">
-                    Train Recognition Model
-                </button>
-            </div>
-
-            <p id="captureMessage" class="message">
-                Ready to capture face samples (Recommend 10-20 images with slight angles and lighting variations).
-            </p>
-        </div>
-
-        <!-- CAMERA FEED & RECOGNITION -->
-        <div class="card">
-            <h2>3. Live Camera & Face Recognition</h2>
-
-            <div class="video-container">
-                <video id="video" autoplay playsinline muted></video>
-                <div id="videoOverlay" class="video-overlay-text">Camera is currently stopped. Click "Start Camera".</div>
-            </div>
-            <canvas id="canvas" style="display: none;"></canvas>
-
-            <div class="btn-group" style="margin-top: 16px;">
-                <button class="btn-green" onclick="startCamera()">
-                    Start Camera
-                </button>
-                <button class="btn-red" onclick="stopCamera()">
-                    Stop Camera
-                </button>
-                <button onclick="startRecognition()">
-                    Start Attendance Marking
-                </button>
-                <button class="btn-orange" onclick="stopRecognition()">
-                    Stop Recognition
-                </button>
-            </div>
-
-            <div id="recognitionMessage" class="message">
-                Start camera to begin face detection and automatic attendance recording.
             </div>
         </div>
 
-    </div>
+        <div class="main-grid">
+            <!-- STUDENT REGISTRATION & SAMPLES -->
+            <div class="card">
+                <h2>1. Student Registration</h2>
 
-    <!-- REGISTERED STUDENTS DIRECTORY -->
-    <div class="card">
-        <h2>Registered Students Directory</h2>
+                <form id="studentForm">
+                    <input type="text" id="name" placeholder="Full Student Name" required>
+                    <input type="text" id="roll" placeholder="Roll Number (Unique)" required>
+                    <div class="form-row">
+                        <input type="text" id="department" placeholder="Department (e.g. MCA)">
+                        <input type="text" id="semester" placeholder="Semester (e.g. Sem 4)">
+                    </div>
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 6px;">Register Student Profile</button>
+                </form>
 
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Roll Number</th>
-                        <th>Department</th>
-                        <th>Semester</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="studentTableBody">
+                <div id="registerMessage" class="message">
+                    Fill the form above to add a student, then capture face samples.
+                </div>
+
+                <h3 style="margin-top: 26px;">2. Face Sample Collection</h3>
+
+                <!-- Active Student Indicator -->
+                <div id="activeStudentBanner" class="active-student-banner" style="display: none;">
+                    Selected Student: <span id="activeStudentLabel">None</span>
+                </div>
+
+                <label for="selectStudent" style="font-size: 13px; font-weight: 600; color: #555;">Or Select Existing Student to Add Samples:</label>
+                <select id="selectStudent" onchange="onSelectExistingStudent(this.value)">
+                    <option value="">-- Choose a student --</option>
                     {% for student in students %}
-                    <tr>
-                        <td>{{ student.id }}</td>
-                        <td><strong>{{ student.name }}</strong></td>
-                        <td>{{ student.roll_number }}</td>
-                        <td>{{ student.department or '-' }}</td>
-                        <td>{{ student.semester or '-' }}</td>
-                        <td>
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" class="btn" style="padding: 6px 12px; font-size: 12px;"
-                                        onclick="selectStudentForCapture('{{ student.id }}', '{{ student.name }}', '{{ student.roll_number }}')">
-                                    Capture Samples
-                                </button>
-                                <button class="btn-red" type="button" style="padding: 6px 12px; font-size: 12px;"
-                                        onclick="confirmDeleteStudent('{{ student.id }}', '{{ student.name }}')">
-                                    Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888;">No students registered yet. Register your first student above.</td>
-                    </tr>
+                    <option value="{{ student.id }}" data-name="{{ student.name }}" data-roll="{{ student.roll_number }}">
+                        {{ student.name }} (Roll: {{ student.roll_number }}, ID: {{ student.id }})
+                    </option>
                     {% endfor %}
-                </tbody>
-            </table>
+                </select>
+
+                <div class="btn-group">
+                    <button class="btn-green" onclick="captureFace()">
+                        Capture Face Sample
+                    </button>
+                    <button class="btn-orange" onclick="trainModel()">
+                        Train Recognition Model
+                    </button>
+                </div>
+
+                <p id="captureMessage" class="message">
+                    Ready to capture face samples (Recommend 10-20 images with slight angles and lighting variations).
+                </p>
+            </div>
+
+            <!-- TRAINING CAMERA WINDOW -->
+            <div class="card">
+                <h2>Face Capture Camera Window</h2>
+
+                <div class="video-container">
+                    <video id="videoTrain" autoplay playsinline muted></video>
+                    <div id="videoOverlayTrain" class="video-overlay-text">Camera is currently stopped. Click "Start Camera".</div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 16px;">
+                    <button class="btn-green" onclick="startCamera()">
+                        Start Camera
+                    </button>
+                    <button class="btn-red" onclick="stopCamera()">
+                        Stop Camera
+                    </button>
+                </div>
+
+                <div class="message" style="margin-top: 10px;">
+                    💡 Look into this camera window, adjust position, and click "Capture Face Sample" to collect 10-20 samples.
+                </div>
+            </div>
         </div>
+
+        <!-- REGISTERED STUDENTS DIRECTORY TABLE -->
+        <div class="card">
+            <h2>Registered Students Directory</h2>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Roll Number</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.id }}</td>
+                            <td><strong>{{ student.name }}</strong></td>
+                            <td>{{ student.roll_number }}</td>
+                            <td>{{ student.department or '-' }}</td>
+                            <td>{{ student.semester or '-' }}</td>
+                            <td>
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn" style="padding: 6px 12px; font-size: 12px;"
+                                            onclick="selectStudentForCapture('{{ student.id }}', '{{ student.name }}', '{{ student.roll_number }}')">
+                                        Capture Samples
+                                    </button>
+                                    <button class="btn-red" type="button" style="padding: 6px 12px; font-size: 12px;"
+                                            onclick="confirmDeleteStudent('{{ student.id }}', '{{ student.name }}')">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #888;">No students registered yet. Register your first student above.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
-    <!-- ATTENDANCE REPORT & EXPORT -->
-    <div class="card">
-        <h2>Attendance Logs & Reports</h2>
+    <!-- TAB 2: ATTENDANCE REGISTRATION & RECORDS -->
+    <div id="tabAttendance" class="tab-pane">
 
-        <form action="/attendance" method="GET" class="filter-form">
-            <label for="filterDate" style="font-weight: 600; font-size: 14px;">Select Date:</label>
-            <input type="date" id="filterDate" name="date" value="{{ today }}" required>
-            <button type="submit" class="btn">Search Records</button>
-            <a class="btn btn-green" href="/export">Export CSV Report</a>
-        </form>
-
-        <div class="table-wrap">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Student Name</th>
-                        <th>Roll Number</th>
-                        <th>Department</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in records %}
-                    <tr>
-                        <td><strong>{{ record.name }}</strong></td>
-                        <td>{{ record.roll_number }}</td>
-                        <td>{{ record.department or '-' }}</td>
-                        <td>{{ record.date }}</td>
-                        <td>{{ record.time }}</td>
-                        <td><span style="color: #218838; font-weight: bold;">● Present</span></td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="6" style="text-align: center; color: #888;">No attendance records found for {{ today }}.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="stats">
+            <div class="stat-card green-border">
+                <h3>Today's Attendance Count</h3>
+                <div class="number">{{ today_attendance }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Current Date</h3>
+                <div class="number" style="font-size: 24px;">{{ today }}</div>
+            </div>
         </div>
+
+        <div class="main-grid">
+            <!-- ATTENDANCE CAMERA & RECOGNITION -->
+            <div class="card">
+                <h2>Face Recognition Camera Window</h2>
+
+                <div class="video-container">
+                    <video id="videoAttendance" autoplay playsinline muted></video>
+                    <div id="videoOverlayAttendance" class="video-overlay-text">Camera is currently stopped. Click "Start Camera".</div>
+                </div>
+
+                <div class="btn-group" style="margin-top: 16px;">
+                    <button class="btn-green" onclick="startCamera()">
+                        Start Camera
+                    </button>
+                    <button class="btn-red" onclick="stopCamera()">
+                        Stop Camera
+                    </button>
+                    <button onclick="startRecognition()">
+                        Start Attendance Marking
+                    </button>
+                    <button class="btn-orange" onclick="stopRecognition()">
+                        Stop Recognition
+                    </button>
+                </div>
+
+                <div id="recognitionMessage" class="message">
+                    Start camera and click "Start Attendance Marking" to detect registered students and mark attendance.
+                </div>
+            </div>
+
+            <!-- ATTENDANCE OVERVIEW & FILTERS -->
+            <div class="card">
+                <h2>Attendance Search & Export</h2>
+                <p style="color: #666; font-size: 14px; margin-top: 0;">
+                    Filter attendance logs by specific date or export the entire history to CSV.
+                </p>
+
+                <form action="/attendance" method="GET" class="filter-form">
+                    <label for="filterDate" style="font-weight: 600; font-size: 14px;">Select Date:</label>
+                    <input type="date" id="filterDate" name="date" value="{{ today }}" required>
+                    <button type="submit" class="btn">Search Records</button>
+                    <a class="btn btn-green" href="/export">Export CSV Report</a>
+                </form>
+
+                <div class="message" style="margin-top: 18px;">
+                    🛡️ <strong>Attendance Rules:</strong> Each student can only be logged once per calendar date. Duplicate scans on the same date will be detected and reported.
+                </div>
+            </div>
+        </div>
+
+        <!-- ATTENDANCE REPORT TABLE -->
+        <div class="card">
+            <h2>Attendance Logs ({{ today }})</h2>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Roll Number</th>
+                            <th>Department</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td><strong>{{ record.name }}</strong></td>
+                            <td>{{ record.roll_number }}</td>
+                            <td>{{ record.department or '-' }}</td>
+                            <td>{{ record.date }}</td>
+                            <td>{{ record.time }}</td>
+                            <td><span style="color: #218838; font-weight: bold;">● Present</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: #888;">No attendance records found for {{ today }}.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
 </div>
+
+<!-- HIDDEN CANVAS FOR FRAME ANALYSIS -->
+<canvas id="canvas" style="display: none;"></canvas>
 
 <!-- CUSTOM IN-BROWSER MODAL DIALOG (Replaces "localhost says" popups) -->
 <div id="customModalOverlay" class="modal-overlay" style="display: none;">
@@ -588,9 +708,73 @@ let currentStudentName = "";
 let recognitionTimer = null;
 let recognitionBusy = false;
 
-const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
-const videoOverlay = document.getElementById("videoOverlay");
+
+// TAB SWITCHING LOGIC
+function switchTab(tab) {
+    const tabTrain = document.getElementById("tabTrain");
+    const tabAttendance = document.getElementById("tabAttendance");
+    const btnTrain = document.getElementById("btnTabTrain");
+    const btnAttendance = document.getElementById("btnTabAttendance");
+
+    if (tab === 'train') {
+        tabTrain.classList.add("active");
+        tabAttendance.classList.remove("active");
+        btnTrain.classList.add("active");
+        btnAttendance.classList.remove("active");
+    } else {
+        tabTrain.classList.remove("active");
+        tabAttendance.classList.add("active");
+        btnTrain.classList.remove("active");
+        btnAttendance.classList.add("active");
+    }
+
+    if (stream) {
+        updateVideoStreams();
+    }
+}
+
+// Automatically open Tab 2 if viewing attendance search results
+window.addEventListener("DOMContentLoaded", () => {
+    if (window.location.search.includes("date=")) {
+        switchTab('attendance');
+    }
+});
+
+// GET CURRENT ACTIVE VIDEO ELEMENT
+function getActiveVideo() {
+    const tabTrain = document.getElementById("tabTrain");
+    if (tabTrain && tabTrain.classList.contains("active")) {
+        return document.getElementById("videoTrain");
+    }
+    return document.getElementById("videoAttendance");
+}
+
+// UPDATE VIDEO STREAMS ACROSS BOTH TABS
+function updateVideoStreams() {
+    const videoTrain = document.getElementById("videoTrain");
+    const videoAttendance = document.getElementById("videoAttendance");
+    const overlayTrain = document.getElementById("videoOverlayTrain");
+    const overlayAttendance = document.getElementById("videoOverlayAttendance");
+
+    if (stream) {
+        if (videoTrain) {
+            videoTrain.srcObject = stream;
+            videoTrain.play().catch(() => {});
+        }
+        if (videoAttendance) {
+            videoAttendance.srcObject = stream;
+            videoAttendance.play().catch(() => {});
+        }
+        if (overlayTrain) overlayTrain.style.display = "none";
+        if (overlayAttendance) overlayAttendance.style.display = "none";
+    } else {
+        if (videoTrain) videoTrain.srcObject = null;
+        if (videoAttendance) videoAttendance.srcObject = null;
+        if (overlayTrain) overlayTrain.style.display = "block";
+        if (overlayAttendance) overlayAttendance.style.display = "block";
+    }
+}
 
 // IN-BROWSER MODAL DIALOG SYSTEM (No "localhost says" popups)
 function showAlert(message, type = 'info', title = null) {
@@ -698,13 +882,15 @@ async function confirmDeleteStudent(studentId, studentName) {
 // START CAMERA
 async function startCamera() {
     try {
-        stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 640 }, height: { ideal: 480 } },
-            audio: false
-        });
-        video.srcObject = stream;
-        videoOverlay.style.display = "none";
-        document.getElementById("recognitionMessage").innerText = "Camera active and streaming.";
+        if (!stream) {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 640 }, height: { ideal: 480 } },
+                audio: false
+            });
+        }
+        updateVideoStreams();
+        const recogMsg = document.getElementById("recognitionMessage");
+        if (recogMsg) recogMsg.innerText = "Camera active and streaming.";
     } catch (error) {
         showAlert("Camera error: " + error.message + ". Please grant camera permissions in your browser.", "error", "Camera Access Denied");
     }
@@ -715,22 +901,23 @@ function stopCamera() {
     stopRecognition();
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
-        video.srcObject = null;
         stream = null;
-        videoOverlay.style.display = "block";
-        document.getElementById("recognitionMessage").innerText = "Camera stopped.";
     }
+    updateVideoStreams();
+    const recogMsg = document.getElementById("recognitionMessage");
+    if (recogMsg) recogMsg.innerText = "Camera stopped.";
 }
 
-// CAPTURE BASE64 IMAGE FROM VIDEO
+// CAPTURE BASE64 IMAGE FROM ACTIVE VIDEO
 function captureImage() {
-    if (!stream || !video.videoWidth) {
+    const activeVideo = getActiveVideo();
+    if (!stream || !activeVideo || !activeVideo.videoWidth) {
         throw new Error("Start the camera first.");
     }
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+    canvas.width = activeVideo.videoWidth;
+    canvas.height = activeVideo.videoHeight;
     const context = canvas.getContext("2d");
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    context.drawImage(activeVideo, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", 0.85);
 }
 
@@ -738,6 +925,7 @@ function captureImage() {
 function selectStudentForCapture(id, name, roll) {
     currentStudentId = id;
     currentStudentName = name;
+    switchTab('train');
     document.getElementById("activeStudentBanner").style.display = "block";
     document.getElementById("activeStudentLabel").innerText = name + " (Roll: " + roll + ", ID: " + id + ")";
     document.getElementById("selectStudent").value = id;
@@ -842,7 +1030,7 @@ async function captureFace() {
         return;
     }
 
-    if (!stream || !video.videoWidth) {
+    if (!stream) {
         showAlert("Please click 'Start Camera' first and allow camera access.", "warning", "Camera Inactive");
         return;
     }
