@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+env/
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Database & biometric data
+database/attendance.db
+dataset/*
+!dataset/.gitkeep
+trainer/trainer.yml
+!trainer/.gitkeep
+
+# Testing & temp
+.pytest_cache/
+*.log
+scratch/

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Facet - Smart Face Attendance | Admin Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #14213d, #1f4068, #162447);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .login-box {
+            background: #ffffff;
+            padding: 40px 35px;
+            width: 380px;
+            max-width: 100%;
+            border-radius: 14px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+        }
+        .logo-badge {
+            display: inline-block;
+            background: #e8f4ff;
+            color: #1f4068;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        h2 {
+            margin: 0 0 6px 0;
+            color: #14213d;
+            font-size: 24px;
+        }
+        p.subtitle {
+            margin: 0 0 25px 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #2874a6;
+            box-shadow: 0 0 0 3px rgba(40, 116, 166, 0.15);
+        }
+        button {
+            width: 100%;
+            padding: 13px;
+            background: #2874a6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #1b4f72;
+        }
+        .error {
+            background: #ffebe9;
+            color: #cf222e;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 18px;
+            border: 1px solid #ffc1c0;
+        }
+        .default-credentials {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed #e1e4e8;
+            font-size: 12px;
+            color: #6a737d;
+            text-align: center;
+        }
+        .default-credentials code {
+            background: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #24292e;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <div style="text-align: center;">
+        <span class="logo-badge">Facet Biometrics</span>
+        <h2>Face Attendance System</h2>
+        <p class="subtitle">MCA Final Year Demonstration</p>
+    </div>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Administrator Username</label>
+            <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" placeholder="Enter password" required>
+        </div>
+
+        <button type="submit">Sign In to Dashboard</button>
+    </form>
+
+    <div class="default-credentials">
+        Default Login: <code>admin</code> / <code>admin123</code>
+    </div>
+</div>
+
+</body>
+</html>
