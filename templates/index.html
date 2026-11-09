@@ -2,349 +2,1171 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Facet - Face Recognition Attendance System</title>
+    <title>Facet Enterprise — Biometric Attendance Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         * { box-sizing: border-box; }
 
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: #f4f7fa;
-            color: #263238;
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-light: #eef2ff;
+            --primary-glow: rgba(99, 102, 241, 0.2);
+            --sidebar-bg: #090d16;
+            --sidebar-border: rgba(255, 255, 255, 0.07);
+            --sidebar-text: #94a3b8;
+            --sidebar-text-active: #ffffff;
+            --body-bg: #f8fafc;
+            --surface-card: #ffffff;
+            --border-card: rgba(226, 232, 240, 0.9);
+            --text-heading: #0f172a;
+            --text-body: #1e293b;
+            --text-muted: #475569;
+            --header-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --card-subtle-bg: #f8fafc;
+            --table-hover: #f8fafc;
+            --table-border: #f1f5f9;
+            --table-th-bg: #f8fafc;
+            --success: #16a34a;
+            --success-light: #f0fdf4;
+            --warning: #d97706;
+            --warning-light: #fffbeb;
+            --danger: #dc2626;
+            --danger-light: #fef2f2;
         }
 
-        header {
-            background: #14213d;
+        body.dark-mode {
+            --sidebar-bg: #070a12;
+            --sidebar-border: rgba(255, 255, 255, 0.08);
+            --body-bg: #090d16;
+            --surface-card: #111827;
+            --border-card: rgba(255, 255, 255, 0.08);
+            --text-heading: #f8fafc;
+            --text-body: #cbd5e1;
+            --text-muted: #94a3b8;
+            --header-bg: #0b0f19;
+            --input-bg: #1e293b;
+            --input-border: #334155;
+            --card-subtle-bg: #161f30;
+            --table-hover: #172136;
+            --table-border: rgba(255, 255, 255, 0.06);
+            --table-th-bg: #0d1322;
+            --success: #4ade80;
+            --success-light: rgba(74, 222, 128, 0.12);
+            --warning: #fbbf24;
+            --warning-light: rgba(251, 191, 36, 0.12);
+            --danger: #f87171;
+            --danger-light: rgba(248, 113, 113, 0.12);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-body);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ---------------- APP SHELL LAYOUT ---------------- */
+        .app-shell {
+            display: flex;
+            width: 100vw;
+            min-height: 100vh;
+        }
+
+        /* ---------------- SIDEBAR ---------------- */
+        aside.sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.25s ease;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid var(--sidebar-border);
+        }
+
+        .brand-logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            padding: 16px 28px;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            flex-shrink: 0;
+        }
+
+        .brand-logo-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .brand-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-title {
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0;
+        }
+
+        .brand-badge {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 1px 6px;
+            border-radius: 6px;
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.35);
+        }
+
+        .brand-tagline {
+            font-size: 11px;
+            color: #64748b;
+            margin: 2px 0 0 0;
+        }
+
+        .sidebar-nav {
+            padding: 20px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #475569;
+            padding: 6px 12px 4px;
+            margin-top: 8px;
+        }
+
+        .sidebar-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--sidebar-text);
+            font-size: 13.5px;
+            font-weight: 500;
+            font-family: inherit;
+            border: none;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            transition: all 0.15s ease;
+        }
+
+        .sidebar-nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+            color: #64748b;
+            transition: color 0.15s ease;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav-btn:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-nav-btn:hover svg {
+            color: #a5b4fc;
+        }
+
+        .sidebar-nav-btn.active {
+            background: rgba(79, 70, 229, 0.16);
+            color: #ffffff;
+            font-weight: 600;
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .sidebar-nav-btn.active svg {
+            color: #818cf8;
+        }
+
+        /* Sidebar System Diagnostics Card */
+        .sidebar-diagnostics {
+            margin: 0 14px 16px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--sidebar-border);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .diagnostics-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .diagnostic-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            font-size: 12px;
+            margin-bottom: 8px;
         }
 
-        header h1 {
-            margin: 0;
-            font-size: 20px;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .diagnostic-row:last-child {
+            margin-bottom: 0;
         }
 
-        header .badge {
-            background: #2874a6;
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 12px;
-            text-transform: uppercase;
+        .diagnostic-label {
+            color: #94a3b8;
         }
 
-        header a {
-            color: #fff;
-            text-decoration: none;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 6px;
-            font-size: 14px;
-            transition: background 0.2s;
-        }
-
-        header a:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 25px auto;
-            padding: 0 16px;
-        }
-
-        /* TAB NAVIGATION */
-        .tabs-header {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 22px;
-            border-bottom: 2px solid #e2e8f0;
-            padding-bottom: 2px;
-        }
-
-        .tab-btn {
-            padding: 13px 26px;
-            background: #ffffff;
-            color: #64748b;
-            border: 1px solid #e2e8f0;
-            border-bottom: 3px solid transparent;
-            border-radius: 8px 8px 0 0;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
+        .status-pill {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 20px;
+        }
+
+        .status-pill.ready {
+            background: rgba(22, 163, 74, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(22, 163, 74, 0.3);
+        }
+
+        .status-pill.warning {
+            background: rgba(217, 119, 6, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(217, 119, 6, 0.3);
+        }
+
+        .status-pill.idle {
+            background: rgba(148, 163, 184, 0.12);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        .status-dot.pulse {
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Sidebar Profile Card */
+        .sidebar-profile {
+            padding: 16px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            background: #1e293b;
+            color: #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .profile-details {
+            flex-grow: 1;
+            overflow: hidden;
+        }
+
+        .profile-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .profile-role {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .btn-logout {
+            color: #94a3b8;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.15s ease;
+        }
+
+        .btn-logout:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ---------------- MAIN WORKSPACE ---------------- */
+        main.main-workspace {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        /* Top Bar */
+        header.top-header {
+            background: var(--header-bg);
+            border-bottom: 1px solid var(--border-card);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .breadcrumbs a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .breadcrumbs a:hover {
+            color: var(--primary);
+        }
+
+        .breadcrumb-separator {
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        .breadcrumb-active {
+            color: var(--text-heading);
+            font-weight: 600;
+        }
+
+        .top-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .quick-search-box {
+            position: relative;
+            width: 250px;
+        }
+
+        .quick-search-box input,
+        .quick-search-box input[type="text"] {
+            width: 100%;
+            padding: 8px 14px 8px 2.25rem !important;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            color: var(--text-heading);
             transition: all 0.2s ease;
+            box-sizing: border-box;
         }
 
-        .tab-btn:hover {
-            color: #14213d;
-            background: #f8fafc;
+        .quick-search-box input:focus,
+        .quick-search-box input[type="text"]:focus {
+            outline: none;
+            background: var(--surface-card);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        .tab-btn.active {
-            color: #2874a6;
-            border-bottom-color: #2874a6;
-            background: #ffffff;
-            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+        .quick-search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 15px;
+            height: 15px;
+            pointer-events: none;
+            z-index: 2;
         }
 
+        .theme-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            background: var(--card-subtle-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-heading);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .theme-toggle-btn:hover {
+            color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .live-clock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--card-subtle-bg);
+            border: 1px solid var(--input-border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+        }
+
+        .sidebar-toggle-btn {
+            display: none;
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            color: var(--text-heading);
+        }
+
+        /* Dashboard Content Container */
+        .workspace-content {
+            padding: 20px 24px 48px;
+            max-width: 1440px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Tab Panes */
         .tab-pane {
             display: none;
-            animation: fadeInTab 0.2s ease-out;
+            animation: fadeIn 0.2s ease-out;
         }
 
         .tab-pane.active {
             display: block;
         }
 
-        @keyframes fadeInTab {
-            from { opacity: 0; transform: translateY(4px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .stats {
+        /* Page Banner */
+        .page-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header-title {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-heading);
+        }
+
+        .page-header-desc {
+            margin: 4px 0 0 0;
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        /* Stat Metric Cards */
+        .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 18px;
             margin-bottom: 24px;
         }
 
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-            border-left: 4px solid #2874a6;
+        .metric-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-card.green-border {
-            border-left-color: #218838;
+        .metric-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            transform: translateY(-1px);
         }
 
-        .stat-card h3 {
-            margin: 0 0 8px 0;
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .metric-label {
             font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
             text-transform: uppercase;
-            color: #6c757d;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.03em;
         }
 
-        .stat-card .number {
-            font-size: 32px;
-            color: #14213d;
+        .metric-icon-wrap {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: var(--primary-light);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .metric-icon-wrap.green {
+            background: var(--success-light);
+            color: var(--success);
+        }
+
+        .metric-icon-wrap.amber {
+            background: var(--warning-light);
+            color: var(--warning);
+        }
+
+        .metric-value {
+            font-size: 30px;
             font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-heading);
         }
 
-        .main-grid {
+        .metric-subtext {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Main Content 2-Column Grid */
+        .workspace-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 22px;
-            margin-bottom: 24px;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+            margin-bottom: 28px;
+            align-items: start;
         }
 
-        @media (max-width: 900px) {
-            .main-grid {
+        .sticky-camera-col {
+            position: sticky;
+            top: 1rem;
+            align-self: start;
+            z-index: 20;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace-grid {
                 grid-template-columns: 1fr;
+            }
+            .camera-card-col {
+                order: -1;
+                position: static;
             }
         }
 
-        .card {
-            background: white;
+        /* Modern Cards */
+        .saas-card {
+            background: var(--surface-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
             padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
             margin-bottom: 24px;
+            transition: background 0.2s ease, border-color 0.2s ease;
         }
 
-        .card h2 {
-            margin-top: 0;
-            margin-bottom: 18px;
-            font-size: 19px;
-            color: #14213d;
-            border-bottom: 2px solid #eef2f5;
-            padding-bottom: 10px;
+        .saas-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--table-border);
         }
 
-        .card h3 {
-            font-size: 15px;
-            color: #333;
-            margin: 20px 0 10px 0;
+        .saas-card-title {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        .saas-card-subtitle {
+            margin: 2px 0 0 0;
+            font-size: 12.5px;
+            color: var(--text-muted);
+        }
+
+        .card-divider {
+            position: relative;
+            text-align: center;
+            margin: 20px 0 16px;
+        }
+
+        .card-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            border-top: 1px solid var(--table-border);
+        }
+
+        .card-divider span {
+            position: relative;
+            background: var(--surface-card);
+            padding: 0 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* Forms & Inputs */
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
-        input, select {
+        .input-group {
+            margin-bottom: 14px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 6px;
+        }
+
+        input[type="text"], input[type="date"], select {
             width: 100%;
-            padding: 11px 12px;
-            margin: 7px 0;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 14px;
+            padding: 10px 14px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--text-heading);
+            transition: all 0.15s ease;
+            box-sizing: border-box;
         }
 
-        input:focus, select:focus {
+        input::placeholder, select::placeholder {
+            color: var(--text-muted);
+            opacity: 1;
+        }
+
+        input[type="text"]:focus, input[type="date"]:focus, select:focus {
             outline: none;
-            border-color: #2874a6;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
         }
 
-        .btn-group {
+        /* Clean Status Line (Replaces loud blue bars) */
+        .status-line {
+            font-size: 13px;
+            color: var(--text-body);
+            background: var(--card-subtle-bg);
+            border: 1px solid var(--border-card);
+            border-radius: 8px;
+            padding: 9px 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            line-height: 1.4;
+            transition: all 0.2s ease;
+        }
+
+        .status-line.success {
+            background: rgba(22, 163, 74, 0.08);
+            border-color: rgba(22, 163, 74, 0.25);
+            color: #16a34a;
+        }
+
+        .status-line.error {
+            background: rgba(220, 38, 38, 0.08);
+            border-color: rgba(220, 38, 38, 0.25);
+            color: #dc2626;
+        }
+
+        .status-line.info {
+            background: rgba(99, 102, 241, 0.08);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: var(--primary);
+        }
+
+        /* Grouped Action Bar below Camera */
+        .camera-actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .camera-actions-bar .btn {
+            flex: 1 1 auto;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+
+
+        /* Capture Progress & Thumbnail Strip */
+        .capture-progress-container {
+            background: var(--card-subtle-bg);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-top: 14px;
+        }
+
+        .capture-progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+
+        .progress-stats {
+            color: var(--primary);
+            font-size: 12.5px;
+            font-weight: 700;
+        }
+
+        .progress-bar-track {
+            width: 100%;
+            height: 7px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        body.dark-mode .progress-bar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #22c55e);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 6px;
+        }
+
+        .thumbnail-strip-wrap {
+            margin-top: 10px;
+        }
+
+        .thumbnail-strip-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .thumbnail-strip {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            min-height: 48px;
+            align-items: center;
+        }
+
+        .thumbnail-placeholder {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .capture-thumb {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid var(--primary);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            animation: popIn 0.2s ease-out;
+            flex-shrink: 0;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.6); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .badge-samples {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 600;
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+        }
+
+        /* Buttons */
+        .btn-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin: 12px 0;
+            gap: 10px;
+            margin-top: 14px;
         }
 
         button, .btn {
             padding: 10px 16px;
-            background: #2874a6;
+            background: var(--primary);
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 600;
+            font-family: inherit;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
             text-decoration: none;
-            transition: opacity 0.2s, background 0.2s;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
         }
 
         button:hover, .btn:hover {
-            opacity: 0.92;
+            background: var(--primary-hover);
+            transform: translateY(-1px);
         }
 
         button:disabled {
-            opacity: 0.5;
+            opacity: 0.55;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .btn-green { background: #218838; }
-        .btn-red { background: #dc3545; }
-        .btn-orange { background: #e58b16; }
+        .btn-success { background: #16a34a; }
+        .btn-success:hover { background: #15803d; }
 
-        .video-container {
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        .btn-warning { background: #d97706; }
+        .btn-warning:hover { background: #b45309; }
+
+        .btn-outline {
+            background: rgba(99, 102, 241, 0.08) !important;
+            color: #4338ca !important;
+            border: 1px solid rgba(99, 102, 241, 0.3) !important;
+        }
+        .btn-outline:hover {
+            background: rgba(99, 102, 241, 0.16) !important;
+            border-color: rgba(99, 102, 241, 0.5) !important;
+            color: #312e81 !important;
+        }
+
+        body.dark-mode .btn-outline {
+            background: rgba(99, 102, 241, 0.16) !important;
+            color: #c7d2fe !important;
+            border: 1px solid rgba(165, 180, 252, 0.35) !important;
+        }
+        body.dark-mode .btn-outline:hover {
+            background: rgba(99, 102, 241, 0.28) !important;
+            border-color: #818cf8 !important;
+            color: #ffffff !important;
+        }
+
+        body.dark-mode .badge-samples {
+            background: rgba(99, 102, 241, 0.2);
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.35);
+        }
+
+        #btnStopRecognition {
+            background: rgba(220, 38, 38, 0.08) !important;
+            border: 1px solid rgba(220, 38, 38, 0.3) !important;
+            color: #dc2626 !important;
+        }
+        #btnStopRecognition:hover {
+            background: rgba(220, 38, 38, 0.18) !important;
+            border-color: #dc2626 !important;
+            color: #b91c1c !important;
+        }
+        body.dark-mode #btnStopRecognition {
+            background: rgba(239, 68, 68, 0.16) !important;
+            border: 1px solid rgba(248, 113, 113, 0.4) !important;
+            color: #fca5a5 !important;
+        }
+        body.dark-mode #btnStopRecognition:hover {
+            background: rgba(239, 68, 68, 0.3) !important;
+            border-color: #f87171 !important;
+            color: #ffffff !important;
+        }
+
+        /* Live Camera Window */
+        .camera-viewport-card {
             position: relative;
             width: 100%;
             aspect-ratio: 4/3;
             max-height: 380px;
-            background: #000;
-            border-radius: 8px;
+            background: #020617;
+            border-radius: 12px;
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid #1e293b;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
         }
 
-        video {
+        .camera-viewport-card video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .video-overlay-text {
+        .camera-idle-state {
             position: absolute;
-            color: #aaa;
-            font-size: 14px;
+            color: #64748b;
+            font-size: 13.5px;
             text-align: center;
+            padding: 20px;
             pointer-events: none;
-        }
-
-        .message {
-            padding: 12px 14px;
-            background: #e8f4ff;
-            color: #0b3d68;
-            border-left: 4px solid #2874a6;
-            border-radius: 4px;
-            margin-top: 12px;
-            font-size: 14px;
-            min-height: 44px;
             display: flex;
+            flex-direction: column;
             align-items: center;
+            gap: 10px;
         }
 
-        .active-student-banner {
+        .camera-idle-state svg {
+            width: 32px;
+            height: 32px;
+            color: #475569;
+        }
+
+        /* Biometric Corner Brackets HUD */
+        .camera-hud-corners {
+            position: absolute;
+            top: 20px; left: 20px; right: 20px; bottom: 20px;
+            pointer-events: none;
+            border: 1px dashed rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+        }
+
+        .camera-hud-corners::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; width: 14px; height: 14px;
+            border-top: 3px solid #6366f1;
+            border-left: 3px solid #6366f1;
+        }
+
+        .camera-hud-corners::after {
+            content: '';
+            position: absolute;
+            bottom: -2px; right: -2px; width: 14px; height: 14px;
+            border-bottom: 3px solid #6366f1;
+            border-right: 3px solid #6366f1;
+        }
+
+
+
+        code {
+            font-family: monospace;
+            background: rgba(99, 102, 241, 0.12);
+            color: var(--primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        body.dark-mode code {
+            background: rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+        }
+
+        body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+
+        .selected-student-pill {
             padding: 10px 14px;
-            background: #e6f4ea;
-            border: 1px solid #ceead6;
-            color: #137333;
-            border-radius: 6px;
-            margin-bottom: 12px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            border-radius: 8px;
             font-size: 13px;
             font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Tables */
+        .table-container {
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            overflow-x: auto;
+            background: var(--surface-card);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            min-width: 550px;
+            font-size: 13.5px;
+            min-width: 600px;
         }
 
         th, td {
-            padding: 12px 14px;
+            padding: 14px 18px;
             text-align: left;
-            border-bottom: 1px solid #eef2f5;
-            font-size: 14px;
+            border-bottom: 1px solid var(--table-border);
         }
 
         th {
-            background: #f8fafc;
-            color: #495057;
+            background: var(--table-th-bg);
+            color: var(--text-heading);
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
 
         tbody tr:hover {
-            background: #fdfdfd;
+            background: var(--table-hover);
         }
 
-        .table-wrap {
-            overflow-x: auto;
-            border: 1px solid #eef2f5;
-            border-radius: 8px;
-        }
-
-        .filter-form {
-            display: flex;
+        .tag-present {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 16px;
-            flex-wrap: wrap;
+            gap: 5px;
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            font-weight: 600;
+            font-size: 11.5px;
+            padding: 3px 8px;
+            border-radius: 6px;
         }
 
-        .filter-form input[type="date"] {
-            width: auto;
-            min-width: 180px;
-            margin: 0;
-        }
-
-        /* CUSTOM IN-PAGE MODAL DIALOG */
+        /* ---------------- CUSTOM IN-PAGE MODAL ---------------- */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(4px);
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(6px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -353,13 +1175,14 @@
         }
 
         .modal-card {
-            background: #ffffff;
+            background: var(--surface-card);
             width: 90%;
             max-width: 440px;
-            border-radius: 12px;
-            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.25);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
             animation: modalPop 0.2s ease-out;
+            border: 1px solid var(--border-card);
         }
 
         @keyframes modalFadeIn {
@@ -368,334 +1191,602 @@
         }
 
         @keyframes modalPop {
-            from { transform: scale(0.92); opacity: 0; }
+            from { transform: scale(0.94); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
 
         .modal-header {
-            padding: 18px 22px 14px;
+            padding: 20px 24px 14px;
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--table-border);
         }
 
         .modal-icon {
-            font-size: 24px;
-            line-height: 1;
+            font-size: 22px;
         }
 
         .modal-title {
             margin: 0;
-            font-size: 17px;
-            color: #1e293b;
-            font-weight: 600;
+            font-size: 16.5px;
+            font-weight: 700;
+            color: var(--text-heading);
+            letter-spacing: -0.01em;
         }
 
         .modal-body {
             padding: 20px 24px;
             font-size: 14.5px;
             line-height: 1.55;
-            color: #475569;
+            color: var(--text-body);
         }
 
         .modal-footer {
-            padding: 14px 22px;
-            background: #f8fafc;
+            padding: 16px 24px;
+            background: var(--card-subtle-bg);
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--table-border);
         }
 
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #334155;
-        }
-        .btn-secondary:hover {
-            background: #cbd5e1;
+        /* Responsive Mobile Styles */
+        @media (max-width: 768px) {
+            aside.sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                height: 100vh;
+            }
+
+            aside.sidebar.mobile-open {
+                transform: translateX(280px);
+            }
+
+            .sidebar-toggle-btn {
+                display: flex;
+            }
+
+            header.top-header {
+                padding: 12px 16px;
+            }
+
+            .workspace-content {
+                padding: 18px 16px 36px;
+            }
+
+            .quick-search-box {
+                display: none;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<header>
-    <h1>Facet <span class="badge">Biometrics</span></h1>
-    <div>
-        <span style="margin-right: 15px; font-size: 14px; opacity: 0.85;">Admin: {{ session.get('admin', 'admin') }}</span>
-        <a href="/logout">Sign Out</a>
-    </div>
-</header>
+<div class="app-shell">
 
-<div class="container">
-
-    <!-- TABS NAVIGATION -->
-    <div class="tabs-header">
-        <button id="btnTabTrain" class="tab-btn active" onclick="switchTab('train')">
-            <span>📸</span> Tab 1: Student Enrollment & Model Training
-        </button>
-        <button id="btnTabAttendance" class="tab-btn" onclick="switchTab('attendance')">
-            <span>📋</span> Tab 2: Attendance Registration & Records
-        </button>
-    </div>
-
-    <!-- TAB 1: MODEL TRAINING & STUDENT ENROLLMENT -->
-    <div id="tabTrain" class="tab-pane active">
-
-        <div class="stats">
-            <div class="stat-card">
-                <h3>Total Registered Students</h3>
-                <div class="number">{{ total_students }}</div>
+    <!-- ---------------- LEFT ENTERPRISE SIDEBAR ---------------- -->
+    <aside id="appSidebar" class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
+                    <circle cx="9" cy="10" r="1.5" fill="currentColor"></circle>
+                    <circle cx="15" cy="10" r="1.5" fill="currentColor"></circle>
+                    <path d="M9 15c1 1 5 1 6 0"></path>
+                </svg>
             </div>
-            <div class="stat-card">
-                <h3>Model Training Status</h3>
-                <div class="number" style="font-size: 20px; color: {% if model_ready %}#218838{% else %}#e58b16{% endif %};">
-                    {% if model_ready %}● Model Trained & Ready{% else %}○ Model Untrained{% endif %}
-                </div>
+            <div class="brand-info">
+                <h1 class="brand-title">Facet</h1>
             </div>
         </div>
 
-        <div class="main-grid">
-            <!-- STUDENT REGISTRATION & SAMPLES -->
-            <div class="card">
-                <h2>1. Student Registration</h2>
+        <nav class="sidebar-nav">
+            <div class="nav-section-title">Operations</div>
+            
+            <button id="btnTabTrain" class="sidebar-nav-btn active" onclick="switchTab('train')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <line x1="19" y1="8" x2="19" y2="14"></line>
+                    <line x1="22" y1="11" x2="16" y2="11"></line>
+                </svg>
+                <span>Student Biometric Registration</span>
+            </button>
 
-                <form id="studentForm">
-                    <input type="text" id="name" placeholder="Full Student Name" required>
-                    <input type="text" id="roll" placeholder="Roll Number (Unique)" required>
-                    <div class="form-row">
-                        <input type="text" id="department" placeholder="Department (e.g. MCA)">
-                        <input type="text" id="semester" placeholder="Semester (e.g. Sem 4)">
+            <button id="btnTabAttendance" class="sidebar-nav-btn" onclick="switchTab('attendance')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                    <path d="m9 16 2 2 4-4"></path>
+                </svg>
+                <span>Live Attendance & Logs</span>
+            </button>
+        </nav>
+
+
+        <!-- Admin Profile -->
+        <div class="sidebar-profile">
+            <div class="profile-avatar">
+                {{ session.get('admin', 'AD')[:2]|upper }}
+            </div>
+            <div class="profile-details">
+                <div class="profile-name">{{ session.get('admin', 'admin') }}</div>
+                <div class="profile-role">Administrator</div>
+            </div>
+            <a href="/logout" class="btn-logout" title="Sign out of console">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ---------------- MAIN WORKSPACE ---------------- -->
+    <main class="main-workspace">
+        
+        <!-- Top Bar -->
+        <header class="top-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="sidebar-toggle-btn" onclick="toggleMobileSidebar()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="breadcrumbs">
+                    <a href="/dashboard">Console</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span id="breadcrumbCurrent" class="breadcrumb-active">Student Biometric Registration</span>
+                </div>
+            </div>
+
+            <div class="top-header-actions">
+                <div class="quick-search-box">
+                    <svg class="quick-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="globalFilterInput" placeholder="Filter records..." onkeyup="filterActiveTable(this.value)">
+                </div>
+
+                <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Dark / Light Mode" aria-label="Toggle theme">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+
+                <div class="live-clock-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="liveClockDisplay">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Workspace Content Area -->
+        <div class="workspace-content">
+
+            <!-- ================= TAB 1: STUDENT BIOMETRIC REGISTRATION ================= -->
+            <div id="tabTrain" class="tab-pane active">
+
+                <div class="page-header-row">
+                    <div>
+                        <h2 class="page-header-title">Student Biometric Registration</h2>
                     </div>
-                    <button type="submit" class="btn" style="width: 100%; margin-top: 6px;">Register Student Profile</button>
-                </form>
-
-                <div id="registerMessage" class="message">
-                    Fill the form above to add a student, then capture face samples.
                 </div>
 
-                <h3 style="margin-top: 26px;">2. Face Sample Collection</h3>
+                <!-- 2-Column Grid (3-Step Layout) -->
+                <div class="workspace-grid">
+                    
+                    <!-- Left Column: Step 1 Profile & Selection -->
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <div>
+                                <h3 class="saas-card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                    </svg>
+                                    Step 1: Student Profile
+                                </h3>
+                                <p class="saas-card-subtitle">Enroll a new student or select an existing record</p>
+                            </div>
+                        </div>
 
-                <!-- Active Student Indicator -->
-                <div id="activeStudentBanner" class="active-student-banner" style="display: none;">
-                    Selected Student: <span id="activeStudentLabel">None</span>
-                </div>
+                        <form id="studentForm">
+                            <div class="input-group">
+                                <label for="name">Full Legal Name</label>
+                                <input type="text" id="name" placeholder="e.g. Alexander Pierce" required>
+                            </div>
 
-                <label for="selectStudent" style="font-size: 13px; font-weight: 600; color: #555;">Or Select Existing Student to Add Samples:</label>
-                <select id="selectStudent" onchange="onSelectExistingStudent(this.value)">
-                    <option value="">-- Choose a student --</option>
-                    {% for student in students %}
-                    <option value="{{ student.id }}" data-name="{{ student.name }}" data-roll="{{ student.roll_number }}">
-                        {{ student.name }} (Roll: {{ student.roll_number }}, ID: {{ student.id }})
-                    </option>
-                    {% endfor %}
-                </select>
+                            <div class="input-group">
+                                <label for="roll">Roll Number <span style="font-weight: 400; color: var(--text-muted); font-size: 11.5px;">(Unique Identifier)</span></label>
+                                <input type="text" id="roll" placeholder="e.g. MCA-2026-042" required>
+                            </div>
 
-                <div class="btn-group">
-                    <button class="btn-green" onclick="captureFace()">
-                        Capture Face Sample
-                    </button>
-                    <button class="btn-orange" onclick="trainModel()">
-                        Train Recognition Model
-                    </button>
-                </div>
-
-                <p id="captureMessage" class="message">
-                    Ready to capture face samples (Recommend 10-20 images with slight angles and lighting variations).
-                </p>
-            </div>
-
-            <!-- TRAINING CAMERA WINDOW -->
-            <div class="card">
-                <h2>Face Capture Camera Window</h2>
-
-                <div class="video-container">
-                    <video id="videoTrain" autoplay playsinline muted></video>
-                    <div id="videoOverlayTrain" class="video-overlay-text">Camera is currently stopped. Click "Start Camera".</div>
-                </div>
-
-                <div class="btn-group" style="margin-top: 16px;">
-                    <button class="btn-green" onclick="startCamera()">
-                        Start Camera
-                    </button>
-                    <button class="btn-red" onclick="stopCamera()">
-                        Stop Camera
-                    </button>
-                </div>
-
-                <div class="message" style="margin-top: 10px;">
-                    💡 Look into this camera window, adjust position, and click "Capture Face Sample" to collect 10-20 samples.
-                </div>
-            </div>
-        </div>
-
-        <!-- REGISTERED STUDENTS DIRECTORY TABLE -->
-        <div class="card">
-            <h2>Registered Students Directory</h2>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Roll Number</th>
-                            <th>Department</th>
-                            <th>Semester</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody">
-                        {% for student in students %}
-                        <tr>
-                            <td>{{ student.id }}</td>
-                            <td><strong>{{ student.name }}</strong></td>
-                            <td>{{ student.roll_number }}</td>
-                            <td>{{ student.department or '-' }}</td>
-                            <td>{{ student.semester or '-' }}</td>
-                            <td>
-                                <div style="display: flex; gap: 8px;">
-                                    <button type="button" class="btn" style="padding: 6px 12px; font-size: 12px;"
-                                            onclick="selectStudentForCapture('{{ student.id }}', '{{ student.name }}', '{{ student.roll_number }}')">
-                                        Capture Samples
-                                    </button>
-                                    <button class="btn-red" type="button" style="padding: 6px 12px; font-size: 12px;"
-                                            onclick="confirmDeleteStudent('{{ student.id }}', '{{ student.name }}')">
-                                        Delete
-                                    </button>
+                            <div class="form-row">
+                                <div class="input-group">
+                                    <label for="department">Department</label>
+                                    <input type="text" id="department" placeholder="e.g. Computer Science">
                                 </div>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #888;">No students registered yet. Register your first student above.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                                <div class="input-group">
+                                    <label for="semester">Semester</label>
+                                    <input type="text" id="semester" placeholder="e.g. Semester 4">
+                                </div>
+                            </div>
 
-    </div>
+                            <button type="submit" class="btn" style="width: 100%;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                </svg>
+                                Register Student Profile
+                            </button>
+                        </form>
 
-    <!-- TAB 2: ATTENDANCE REGISTRATION & RECORDS -->
-    <div id="tabAttendance" class="tab-pane">
+                        <div id="registerMessage" class="status-line">
+                            <span>Ready to register. Fill form above to enroll a new student.</span>
+                        </div>
 
-        <div class="stats">
-            <div class="stat-card green-border">
-                <h3>Today's Attendance Count</h3>
-                <div class="number">{{ today_attendance }}</div>
-            </div>
-            <div class="stat-card">
-                <h3>Current Date</h3>
-                <div class="number" style="font-size: 24px;">{{ today }}</div>
-            </div>
-        </div>
+                        <div class="card-divider">
+                            <span>OR SELECT EXISTING STUDENT</span>
+                        </div>
 
-        <div class="main-grid">
-            <!-- ATTENDANCE CAMERA & RECOGNITION -->
-            <div class="card">
-                <h2>Face Recognition Camera Window</h2>
+                        <!-- Active student banner -->
+                        <div id="activeStudentBanner" class="selected-student-pill" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                            <div>Active Student: <span id="activeStudentLabel">None</span></div>
+                        </div>
 
-                <div class="video-container">
-                    <video id="videoAttendance" autoplay playsinline muted></video>
-                    <div id="videoOverlayAttendance" class="video-overlay-text">Camera is currently stopped. Click "Start Camera".</div>
+                        <div class="input-group" style="margin-bottom: 0;">
+                            <label for="selectStudent">Select Registered Student to Add Samples:</label>
+                            <select id="selectStudent" onchange="onSelectExistingStudent(this.value)">
+                                <option value="">-- Choose a registered student --</option>
+                                {% for student in students %}
+                                <option value="{{ student.id }}" data-name="{{ student.name }}" data-roll="{{ student.roll_number }}" data-samples="{{ student.sample_count or 0 }}">
+                                    {{ student.name }} (Roll: {{ student.roll_number }}, Samples: {{ student.sample_count or 0 }}/5)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Step 2 & 3 (Camera Viewport, Capture, Checklist, Train - STICKY) -->
+                    <div class="saas-card sticky-camera-col camera-card-col">
+                        <div class="saas-card-header">
+                            <div>
+                                <h3 class="saas-card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                    </svg>
+                                    Step 2 & 3: Biometric Capture & Training
+                                </h3>
+                                <p class="saas-card-subtitle">Position face within brackets, capture samples & train LBPH model</p>
+                            </div>
+                        </div>
+
+                        <div class="camera-viewport-card">
+                            <video id="videoTrain" autoplay playsinline muted></video>
+                            <div class="camera-hud-corners"></div>
+                            <div id="videoOverlayTrain" class="camera-idle-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <path d="M16 16v1a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"></path>
+                                    <path d="M23 7l-7 5 7 5V7z"></path>
+                                    <line x1="1" y1="1" x2="23" y2="23"></line>
+                                </svg>
+                                <span>Camera is inactive. Click "Start Camera" below to begin.</span>
+                            </div>
+                        </div>
+
+                        <!-- Grouped Action Bar below Camera -->
+                        <div class="camera-actions-bar">
+                            <button id="btnToggleCamera" class="btn btn-success" onclick="toggleCamera()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <span>Start Camera</span>
+                            </button>
+                            <button id="btnCaptureFace" class="btn btn-primary" onclick="captureFace()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                                <span>Capture Face Sample</span>
+                            </button>
+                            <button id="btnTrainModel" class="btn btn-warning" onclick="trainModel()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                </svg>
+                                <span>Train Model</span>
+                            </button>
+                        </div>
+
+                        <!-- Single Status Line -->
+                        <div id="captureMessage" class="status-line info">
+                            <span>Ready to capture. Select student profile and activate camera.</span>
+                        </div>
+
+                        <!-- Capture Counter & Progress Bar & Thumbnail Strip -->
+                        <div class="capture-progress-container">
+                            <div class="capture-progress-header">
+                                <span>Biometric Samples Collected</span>
+                                <span class="progress-stats"><span id="sampleCountDisplay">0</span> / 5 target</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div id="captureProgressBar" class="progress-bar-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="thumbnail-strip-wrap">
+                                <div class="thumbnail-strip-label">Recent Captures:</div>
+                                <div id="thumbnailStrip" class="thumbnail-strip">
+                                    <span class="thumbnail-placeholder">Captured samples will appear here</span>
+                                </div>
+                            </div>
+                        </div>
+
+
+                    </div>
+
                 </div>
 
-                <div class="btn-group" style="margin-top: 16px;">
-                    <button class="btn-green" onclick="startCamera()">
-                        Start Camera
-                    </button>
-                    <button class="btn-red" onclick="stopCamera()">
-                        Stop Camera
-                    </button>
-                    <button onclick="startRecognition()">
-                        Start Attendance Marking
-                    </button>
-                    <button class="btn-orange" onclick="stopRecognition()">
-                        Stop Recognition
-                    </button>
+                <!-- Enrolled Students Table -->
+                <div class="saas-card">
+                    <div class="saas-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="saas-card-title">Enrolled Students Directory</h3>
+                            <p class="saas-card-subtitle">Manage registered student profiles and training datasets</p>
+                        </div>
+                        <div class="status-pill ready" style="padding: 7px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; background: rgba(79, 70, 229, 0.08); color: var(--primary); border: 1px solid rgba(79, 70, 229, 0.2);">
+                            Total Registered Students: <strong style="margin-left: 6px; font-size: 15px;">{{ total_students }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="tableStudents">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Department</th>
+                                    <th>Semester</th>
+                                    <th>Samples</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                {% for student in students %}
+                                <tr>
+                                    <td><span style="font-family: monospace; font-weight: 600; color: #64748b;">#{{ student.id }}</span></td>
+                                    <td><strong>{{ student.name }}</strong></td>
+                                    <td><span style="font-family: monospace;">{{ student.roll_number }}</span></td>
+                                    <td>{{ student.department or '—' }}</td>
+                                    <td>{{ student.semester or '—' }}</td>
+                                    <td>
+                                        <span class="badge-samples">{{ student.sample_count or 0 }}/5</span>
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button type="button" class="btn btn-outline" style="padding: 6px 12px; font-size: 12px;"
+                                                    onclick="selectStudentForCapture('{{ student.id }}', '{{ student.name }}', '{{ student.roll_number }}', '{{ student.sample_count or 0 }}')">
+                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink: 0;">
+                                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                                    <circle cx="12" cy="13" r="4"></circle>
+                                                </svg>
+                                                <span>Capture Samples</span>
+                                            </button>
+                                            <button class="btn btn-danger" type="button" style="padding: 6px 12px; font-size: 12px;"
+                                                    onclick="confirmDeleteStudent('{{ student.id }}', '{{ student.name }}')">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 32px;">No student records found. Enroll your first student above.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div id="recognitionMessage" class="message">
-                    Start camera and click "Start Attendance Marking" to detect registered students and mark attendance.
-                </div>
             </div>
 
-            <!-- ATTENDANCE OVERVIEW & FILTERS -->
-            <div class="card">
-                <h2>Attendance Search & Export</h2>
-                <p style="color: #666; font-size: 14px; margin-top: 0;">
-                    Filter attendance logs by specific date or export the entire history to CSV.
-                </p>
+            <!-- ================= TAB 2: LIVE ATTENDANCE & LOGS ================= -->
+            <div id="tabAttendance" class="tab-pane">
 
-                <form action="/attendance" method="GET" class="filter-form">
-                    <label for="filterDate" style="font-weight: 600; font-size: 14px;">Select Date:</label>
-                    <input type="date" id="filterDate" name="date" value="{{ today }}" required>
-                    <button type="submit" class="btn">Search Records</button>
-                    <a class="btn btn-green" href="/export">Export CSV Report</a>
-                </form>
-
-                <div class="message" style="margin-top: 18px;">
-                    🛡️ <strong>Attendance Rules:</strong> Each student can only be logged once per calendar date. Duplicate scans on the same date will be detected and reported.
+                <div class="page-header-row">
+                    <div>
+                        <h2 class="page-header-title">Live Biometric Attendance & Records</h2>
+                    </div>
                 </div>
+
+                <!-- 2-Column Grid -->
+                <div class="workspace-grid">
+                    
+                    <!-- Left: Camera Viewport for Attendance (Sticky) -->
+                    <div class="saas-card sticky-camera-col camera-card-col">
+                        <div class="saas-card-header">
+                            <div>
+                                <h3 class="saas-card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="12" r="4"></circle>
+                                    </svg>
+                                    Biometric Recognition Viewport
+                                </h3>
+                                <p class="saas-card-subtitle">Real-time facial detection & attendance logging</p>
+                            </div>
+                        </div>
+
+                        <div class="camera-viewport-card">
+                            <video id="videoAttendance" autoplay playsinline muted></video>
+                            <div class="camera-hud-corners"></div>
+                            <div id="videoOverlayAttendance" class="camera-idle-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                    <polygon points="23 7 16 12 23 17 23 7"></polygon>
+                                    <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+                                </svg>
+                                <span>Camera is inactive. Click "Start Camera" below to begin.</span>
+                            </div>
+                        </div>
+
+                        <div class="camera-actions-bar">
+                            <button id="btnToggleAttendanceCamera" class="btn btn-success" onclick="toggleCamera()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <span>Start Camera</span>
+                            </button>
+                            <button id="btnStartRecognition" class="btn btn-primary" onclick="startRecognition()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                <span>Start Auto-Scan</span>
+                            </button>
+                            <button id="btnStopRecognition" class="btn btn-outline" onclick="stopRecognition()">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="6" y="6" width="12" height="12"></rect>
+                                </svg>
+                                <span>Halt Scan</span>
+                            </button>
+                        </div>
+
+                        <div id="recognitionMessage" class="status-line" style="margin-top: 14px;">
+                            <span>Click "Start Camera" and "Start Auto-Scan" to recognize students.</span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Search Filter & CSV Export Panel -->
+                    <div class="saas-card">
+                        <div class="saas-card-header">
+                            <div>
+                                <h3 class="saas-card-title">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Attendance Query & Export
+                                </h3>
+                                <p class="saas-card-subtitle">Search logs by date or download CSV reports</p>
+                            </div>
+                        </div>
+
+                        <form action="/attendance" method="GET">
+                            <div class="input-group">
+                                <label for="filterDate">Select Calendar Date:</label>
+                                <input type="date" id="filterDate" name="date" value="{{ today }}" required>
+                            </div>
+
+                            <div class="btn-row" style="margin-top: 14px;">
+                                <button type="submit" class="btn">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="11" cy="11" r="8"></circle>
+                                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    </svg>
+                                    Search Records
+                                </button>
+                                <a class="btn btn-success" href="/export">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                        <polyline points="7 10 12 15 17 10"></polyline>
+                                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                                    </svg>
+                                    Export CSV Report
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+
+                </div>
+
+                <!-- Attendance Log Activity Table -->
+                <div class="saas-card">
+                    <div class="saas-card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div>
+                            <h3 class="saas-card-title">Daily Attendance Logs ({{ today }})</h3>
+                            <p class="saas-card-subtitle">Showing verified attendees recorded for the chosen date</p>
+                        </div>
+                        <div class="status-pill ready" style="padding: 7px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; background: rgba(22, 163, 74, 0.08); color: var(--success); border: 1px solid rgba(22, 163, 74, 0.25);">
+                            Total Attendance Today: <strong id="todayAttendanceCount" style="margin-left: 6px; font-size: 15px;">{{ today_attendance }}</strong>
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table id="tableAttendance">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Department</th>
+                                    <th>Date</th>
+                                    <th>Recorded Time</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceTableBody">
+                                {% for record in records %}
+                                <tr>
+                                    <td><strong>{{ record.name }}</strong></td>
+                                    <td><span style="font-family: monospace;">{{ record.roll_number }}</span></td>
+                                    <td>{{ record.department or '—' }}</td>
+                                    <td>{{ record.date }}</td>
+                                    <td><span style="font-family: monospace;">{{ record.time }}</span></td>
+                                    <td>
+                                        <span class="tag-present">
+                                            <span class="status-dot"></span> Present
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 32px;">No attendance records found for {{ today }}.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
+
         </div>
-
-        <!-- ATTENDANCE REPORT TABLE -->
-        <div class="card">
-            <h2>Attendance Logs ({{ today }})</h2>
-
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Student Name</th>
-                            <th>Roll Number</th>
-                            <th>Department</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for record in records %}
-                        <tr>
-                            <td><strong>{{ record.name }}</strong></td>
-                            <td>{{ record.roll_number }}</td>
-                            <td>{{ record.department or '-' }}</td>
-                            <td>{{ record.date }}</td>
-                            <td>{{ record.time }}</td>
-                            <td><span style="color: #218838; font-weight: bold;">● Present</span></td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="6" style="text-align: center; color: #888;">No attendance records found for {{ today }}.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
+    </main>
 
 </div>
 
-<!-- HIDDEN CANVAS FOR FRAME ANALYSIS -->
+<!-- Hidden Canvas for frame processing -->
 <canvas id="canvas" style="display: none;"></canvas>
 
-<!-- CUSTOM IN-BROWSER MODAL DIALOG (Replaces "localhost says" popups) -->
+<!-- Custom In-Browser Modal Dialog -->
 <div id="customModalOverlay" class="modal-overlay" style="display: none;">
     <div class="modal-card">
         <div id="modalHeader" class="modal-header">
             <span id="modalIcon" class="modal-icon">ℹ️</span>
-            <h3 id="modalTitle" class="modal-title">Facet System</h3>
+            <h3 id="modalTitle" class="modal-title">Facet Enterprise</h3>
         </div>
         <div id="modalBody" class="modal-body"></div>
         <div class="modal-footer">
-            <button id="modalCancelBtn" type="button" class="btn btn-secondary" style="display: none;">Cancel</button>
+            <button id="modalCancelBtn" type="button" class="btn btn-outline" style="display: none;">Cancel</button>
             <button id="modalConfirmBtn" type="button" class="btn">Got It</button>
         </div>
     </div>
@@ -707,26 +1798,79 @@ let currentStudentId = null;
 let currentStudentName = "";
 let recognitionTimer = null;
 let recognitionBusy = false;
+let currentStudentSampleCount = 0;
 
 const canvas = document.getElementById("canvas");
 
-// TAB SWITCHING LOGIC
+// THEME SWITCHER (Dark / Light Mode)
+function initTheme() {
+    const saved = localStorage.getItem("facet-theme");
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = saved || (prefersDark ? "dark" : "light");
+    applyTheme(theme);
+}
+
+function applyTheme(theme) {
+    const btn = document.getElementById("themeToggleBtn");
+    if (theme === "dark") {
+        document.body.classList.add("dark-mode");
+        if (btn) {
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+            btn.title = "Switch to Light Mode";
+        }
+    } else {
+        document.body.classList.remove("dark-mode");
+        if (btn) {
+            btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+            btn.title = "Switch to Dark Mode";
+        }
+    }
+    localStorage.setItem("facet-theme", theme);
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.contains("dark-mode");
+    applyTheme(isDark ? "light" : "dark");
+}
+
+window.addEventListener("DOMContentLoaded", initTheme);
+
+// LIVE DIGITAL CLOCK
+function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-US', { hour12: false });
+    const clockEl = document.getElementById("liveClockDisplay");
+    if (clockEl) clockEl.innerText = timeStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// MOBILE SIDEBAR TOGGLE
+function toggleMobileSidebar() {
+    const sidebar = document.getElementById("appSidebar");
+    if (sidebar) sidebar.classList.toggle("mobile-open");
+}
+
+// TAB NAVIGATION LOGIC
 function switchTab(tab) {
     const tabTrain = document.getElementById("tabTrain");
     const tabAttendance = document.getElementById("tabAttendance");
     const btnTrain = document.getElementById("btnTabTrain");
     const btnAttendance = document.getElementById("btnTabAttendance");
+    const breadcrumb = document.getElementById("breadcrumbCurrent");
 
     if (tab === 'train') {
         tabTrain.classList.add("active");
         tabAttendance.classList.remove("active");
         btnTrain.classList.add("active");
         btnAttendance.classList.remove("active");
+        if (breadcrumb) breadcrumb.innerText = "Student Biometric Registration";
     } else {
         tabTrain.classList.remove("active");
         tabAttendance.classList.add("active");
         btnTrain.classList.remove("active");
         btnAttendance.classList.add("active");
+        if (breadcrumb) breadcrumb.innerText = "Live Attendance & Logs";
     }
 
     if (stream) {
@@ -734,7 +1878,7 @@ function switchTab(tab) {
     }
 }
 
-// Automatically open Tab 2 if viewing attendance search results
+// Auto-switch to attendance tab if query params exist (e.g. searching dates)
 window.addEventListener("DOMContentLoaded", () => {
     if (window.location.search.includes("date=")) {
         switchTab('attendance');
@@ -750,12 +1894,15 @@ function getActiveVideo() {
     return document.getElementById("videoAttendance");
 }
 
-// UPDATE VIDEO STREAMS ACROSS BOTH TABS
+// UPDATE VIDEO STREAMS & TOGGLE BUTTONS
 function updateVideoStreams() {
     const videoTrain = document.getElementById("videoTrain");
     const videoAttendance = document.getElementById("videoAttendance");
     const overlayTrain = document.getElementById("videoOverlayTrain");
     const overlayAttendance = document.getElementById("videoOverlayAttendance");
+
+    const btn1 = document.getElementById("btnToggleCamera");
+    const btn2 = document.getElementById("btnToggleAttendanceCamera");
 
     if (stream) {
         if (videoTrain) {
@@ -768,15 +1915,32 @@ function updateVideoStreams() {
         }
         if (overlayTrain) overlayTrain.style.display = "none";
         if (overlayAttendance) overlayAttendance.style.display = "none";
+
+        const stopBtnHtml = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12"></rect></svg><span>Stop Camera</span>`;
+        if (btn1) { btn1.className = "btn btn-danger"; btn1.innerHTML = stopBtnHtml; }
+        if (btn2) { btn2.className = "btn btn-danger"; btn2.innerHTML = stopBtnHtml; }
     } else {
         if (videoTrain) videoTrain.srcObject = null;
         if (videoAttendance) videoAttendance.srcObject = null;
-        if (overlayTrain) overlayTrain.style.display = "block";
-        if (overlayAttendance) overlayAttendance.style.display = "block";
+        if (overlayTrain) overlayTrain.style.display = "flex";
+        if (overlayAttendance) overlayAttendance.style.display = "flex";
+
+        const startBtnHtml = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Start Camera</span>`;
+        if (btn1) { btn1.className = "btn btn-success"; btn1.innerHTML = startBtnHtml; }
+        if (btn2) { btn2.className = "btn btn-success"; btn2.innerHTML = startBtnHtml; }
     }
 }
 
-// IN-BROWSER MODAL DIALOG SYSTEM (No "localhost says" popups)
+// MERGED TOGGLE CAMERA
+function toggleCamera() {
+    if (stream) {
+        stopCamera();
+    } else {
+        startCamera();
+    }
+}
+
+// IN-BROWSER MODAL DIALOG SYSTEM
 function showAlert(message, type = 'info', title = null) {
     return new Promise((resolve) => {
         const overlay = document.getElementById("customModalOverlay");
@@ -795,12 +1959,12 @@ function showAlert(message, type = 'info', title = null) {
         const defaultTitles = {
             success: "Success",
             error: "Attention Required",
-            warning: "Notice",
+            warning: "System Notice",
             info: "Facet Notification"
         };
 
         iconEl.innerText = icons[type] || "ℹ️";
-        titleEl.innerText = title || defaultTitles[type] || "Facet Biometrics";
+        titleEl.innerText = title || defaultTitles[type] || "Facet Enterprise";
         bodyEl.innerText = message;
 
         cancelBtn.style.display = "none";
@@ -833,7 +1997,7 @@ function showConfirm(message, title = "Confirm Action") {
         bodyEl.innerText = message;
 
         cancelBtn.style.display = "inline-flex";
-        confirmBtn.className = "btn btn-red";
+        confirmBtn.className = "btn btn-danger";
         confirmBtn.innerText = "Yes, Delete";
 
         overlay.style.display = "flex";
@@ -860,15 +2024,16 @@ function showConfirm(message, title = "Confirm Action") {
     });
 }
 
-// Override native window.alert globally
+// Global alert override
 window.alert = function(msg) {
     showAlert(msg, "info");
 };
 
+// DELETE CONFIRMATION
 async function confirmDeleteStudent(studentId, studentName) {
     const confirmed = await showConfirm(
-        "Are you sure you want to delete " + studentName + "? All face samples and attendance history for this student will be permanently deleted.",
-        "Delete Student Record"
+        "Are you sure you want to permanently delete " + studentName + "? All corresponding facial samples and attendance logs will be wiped.",
+        "Delete Student Profile"
     );
     if (confirmed) {
         const form = document.createElement("form");
@@ -890,9 +2055,12 @@ async function startCamera() {
         }
         updateVideoStreams();
         const recogMsg = document.getElementById("recognitionMessage");
-        if (recogMsg) recogMsg.innerText = "Camera active and streaming.";
+        if (recogMsg) {
+            recogMsg.className = "status-line success";
+            recogMsg.innerHTML = "<span>Camera active. Video frames streaming.</span>";
+        }
     } catch (error) {
-        showAlert("Camera error: " + error.message + ". Please grant camera permissions in your browser.", "error", "Camera Access Denied");
+        showAlert("Camera access failed: " + error.message + ". Please verify browser camera permissions.", "error", "Camera Access Denied");
     }
 }
 
@@ -905,7 +2073,10 @@ function stopCamera() {
     }
     updateVideoStreams();
     const recogMsg = document.getElementById("recognitionMessage");
-    if (recogMsg) recogMsg.innerText = "Camera stopped.";
+    if (recogMsg) {
+        recogMsg.className = "status-line";
+        recogMsg.innerHTML = "<span>Camera stopped. Click 'Start Camera' to resume.</span>";
+    }
 }
 
 // CAPTURE BASE64 IMAGE FROM ACTIVE VIDEO
@@ -921,26 +2092,66 @@ function captureImage() {
     return canvas.toDataURL("image/jpeg", 0.85);
 }
 
+// PROGRESS HELPER
+function updateCaptureProgress(count) {
+    currentStudentSampleCount = count;
+    const target = 5;
+    const pct = Math.min(100, Math.round((currentStudentSampleCount / target) * 100));
+    const countEl = document.getElementById("sampleCountDisplay");
+    if (countEl) countEl.innerText = currentStudentSampleCount;
+    const bar = document.getElementById("captureProgressBar");
+    if (bar) bar.style.width = pct + "%";
+}
+
+// THUMBNAIL STRIP HELPER
+function addCaptureThumbnail(imageSrc, label) {
+    const strip = document.getElementById("thumbnailStrip");
+    if (!strip) return;
+    const placeholder = strip.querySelector(".thumbnail-placeholder");
+    if (placeholder) placeholder.remove();
+
+    const img = document.createElement("img");
+    img.src = imageSrc;
+    img.className = "capture-thumb";
+    img.title = label;
+    strip.prepend(img);
+
+    while (strip.children.length > 8) {
+        strip.removeChild(strip.lastChild);
+    }
+}
+
 // STUDENT SELECTION HELPERS
-function selectStudentForCapture(id, name, roll) {
+function selectStudentForCapture(id, name, roll, samples = 0) {
     currentStudentId = id;
     currentStudentName = name;
     switchTab('train');
-    document.getElementById("activeStudentBanner").style.display = "block";
-    document.getElementById("activeStudentLabel").innerText = name + " (Roll: " + roll + ", ID: " + id + ")";
-    document.getElementById("selectStudent").value = id;
-    document.getElementById("captureMessage").innerText = "Ready to capture samples for " + name + ". Ensure the camera is active.";
+    const banner = document.getElementById("activeStudentBanner");
+    if (banner) banner.style.display = "flex";
+    const label = document.getElementById("activeStudentLabel");
+    if (label) label.innerText = name + " (Roll: " + roll + ", ID: #" + id + ")";
+    const select = document.getElementById("selectStudent");
+    if (select) select.value = id;
+    
+    updateCaptureProgress(parseInt(samples) || 0);
+
+    const msg = document.getElementById("captureMessage");
+    if (msg) {
+        msg.className = "status-line info";
+        msg.innerHTML = "<span>Selected <strong>" + name + "</strong>. Position face in frame and click 'Capture Face Sample'.</span>";
+    }
 }
 
 function onSelectExistingStudent(studentId) {
     if (!studentId) {
         currentStudentId = null;
         document.getElementById("activeStudentBanner").style.display = "none";
+        updateCaptureProgress(0);
         return;
     }
     const select = document.getElementById("selectStudent");
     const option = select.options[select.selectedIndex];
-    selectStudentForCapture(studentId, option.dataset.name, option.dataset.roll);
+    selectStudentForCapture(studentId, option.dataset.name, option.dataset.roll, option.dataset.samples || 0);
 }
 
 // SAFE JSON FETCH WRAPPER
@@ -953,13 +2164,13 @@ async function safeFetchJson(url, options = {}) {
     const response = await fetch(url, options);
 
     if (response.redirected && (response.url.endsWith("/") || response.url.includes("login"))) {
-        await showAlert("Your session has expired. Redirecting to login page...", "warning", "Session Expired");
+        await showAlert("Your administrative session has expired. Redirecting to login...", "warning", "Session Expired");
         window.location.href = "/";
         throw new Error("Session expired. Redirecting to login.");
     }
 
     if (response.status === 401) {
-        await showAlert("Session expired. Please log in again.", "warning", "Session Expired");
+        await showAlert("Session expired. Please sign in again.", "warning", "Session Expired");
         window.location.href = "/";
         throw new Error("Session expired (401)");
     }
@@ -968,7 +2179,7 @@ async function safeFetchJson(url, options = {}) {
     if (!contentType.includes("application/json")) {
         const text = await response.text();
         if (text.includes("<!DOCTYPE") || text.includes("<html") || text.includes("Administrator Login")) {
-            await showAlert("Session expired. Please log in again.", "warning", "Session Expired");
+            await showAlert("Session expired. Please sign in again.", "warning", "Session Expired");
             window.location.href = "/";
             throw new Error("Session expired (HTML returned)");
         }
@@ -982,11 +2193,28 @@ async function safeFetchJson(url, options = {}) {
 document.getElementById("studentForm").addEventListener("submit", async function(event) {
     event.preventDefault();
 
+    const name = document.getElementById("name").value.trim();
+    const roll = document.getElementById("roll").value.trim();
+    const department = document.getElementById("department").value.trim();
+    const semester = document.getElementById("semester").value.trim();
+
+    // Client-side instant uniqueness check against already-registered students
+    const existingOptions = Array.from(document.querySelectorAll("#selectStudent option"));
+    const duplicateOption = existingOptions.find(opt => {
+        const existingRoll = (opt.dataset.roll || "").trim().toLowerCase();
+        return existingRoll && existingRoll === roll.toLowerCase();
+    });
+
+    if (duplicateOption) {
+        showAlert("Roll number '" + roll + "' is already registered to '" + duplicateOption.dataset.name + "'. Each student must have a unique roll number.", "warning", "Duplicate Roll Number");
+        return;
+    }
+
     const data = new FormData();
-    data.append("name", document.getElementById("name").value.trim());
-    data.append("roll_number", document.getElementById("roll").value.trim());
-    data.append("department", document.getElementById("department").value.trim());
-    data.append("semester", document.getElementById("semester").value.trim());
+    data.append("name", name);
+    data.append("roll_number", roll);
+    data.append("department", department);
+    data.append("semester", semester);
 
     try {
         const result = await safeFetchJson("/register_student", {
@@ -994,51 +2222,53 @@ document.getElementById("studentForm").addEventListener("submit", async function
             body: data
         });
 
-        document.getElementById("registerMessage").innerText = result.message;
+        const regMsg = document.getElementById("registerMessage");
+        if (regMsg) {
+            regMsg.className = "status-line " + (result.success ? "success" : "error");
+            regMsg.innerHTML = "<span>" + result.message + "</span>";
+        }
 
         if (result.success) {
             currentStudentId = result.student_id;
             currentStudentName = result.name;
 
-            // Preserve student ID without reloading
-            selectStudentForCapture(result.student_id, result.name, result.roll_number);
+            selectStudentForCapture(result.student_id, result.name, result.roll_number, 0);
 
-            // Add newly registered student to dropdown
             const select = document.getElementById("selectStudent");
             const opt = document.createElement("option");
             opt.value = result.student_id;
             opt.dataset.name = result.name;
             opt.dataset.roll = result.roll_number;
-            opt.text = result.name + " (Roll: " + result.roll_number + ", ID: " + result.student_id + ")";
+            opt.dataset.samples = 0;
+            opt.text = result.name + " (Roll: " + result.roll_number + ", Samples: 0/5)";
             select.appendChild(opt);
             select.value = result.student_id;
 
             document.getElementById("studentForm").reset();
-            showAlert("Student '" + result.name + "' registered successfully! Now click 'Capture Face Sample' while looking at the camera.", "success", "Student Registered");
+            showAlert("Student '" + result.name + "' enrolled successfully! Now capture face samples in the camera viewport.", "success", "Enrollment Complete");
         } else {
             showAlert(result.message, "error", "Registration Notice");
         }
     } catch (error) {
-        showAlert("Registration failed: " + error.message, "error", "Error");
+        showAlert("Registration request failed: " + error.message, "error", "Error");
     }
 });
 
 // CAPTURE FACE SAMPLE
 async function captureFace() {
     if (!currentStudentId) {
-        showAlert("Please register a student or select one from the 'Select Existing Student' dropdown first.", "warning", "No Student Selected");
+        showAlert("Please enroll a student or choose one from the dropdown first.", "warning", "No Student Selected");
         return;
     }
 
     if (!stream) {
-        showAlert("Please click 'Start Camera' first and allow camera access.", "warning", "Camera Inactive");
+        showAlert("Please click 'Start Camera' first to activate the video stream.", "warning", "Camera Inactive");
         return;
     }
 
     const captureMsg = document.getElementById("captureMessage");
-    captureMsg.style.background = "#e8f4ff";
-    captureMsg.style.color = "#0b3d68";
-    captureMsg.innerText = "Capturing and analyzing face...";
+    captureMsg.className = "status-line info";
+    captureMsg.innerHTML = "<span>Analyzing frame for facial landmarks...</span>";
 
     try {
         const image = captureImage();
@@ -1052,34 +2282,39 @@ async function captureFace() {
         });
 
         if (result.success) {
-            captureMsg.style.background = "#e6f4ea";
-            captureMsg.style.color = "#137333";
-            captureMsg.style.borderColor = "#218838";
-            captureMsg.innerHTML = "✅ <strong>" + result.message + "</strong>";
+            captureMsg.className = "status-line success";
+            captureMsg.innerHTML = "<span>✅ <strong>" + result.message + "</strong></span>";
+
+            const newCount = result.count !== undefined ? result.count : (currentStudentSampleCount + 1);
+            updateCaptureProgress(newCount);
+            addCaptureThumbnail(image, result.message);
         } else {
-            captureMsg.style.background = "#fce8e6";
-            captureMsg.style.color = "#c5221f";
-            captureMsg.style.borderColor = "#dc3545";
-            captureMsg.innerHTML = "❌ <strong>" + result.message + "</strong>";
+            captureMsg.className = "status-line error";
+            captureMsg.innerHTML = "<span>❌ <strong>" + result.message + "</strong></span>";
         }
     } catch (error) {
-        captureMsg.style.background = "#fce8e6";
-        captureMsg.style.color = "#c5221f";
-        captureMsg.innerText = "Error: " + error.message;
+        captureMsg.className = "status-line error";
+        captureMsg.innerHTML = "<span>Capture error: " + error.message + "</span>";
     }
 }
 
 // TRAIN LBPH MODEL
 async function trainModel() {
-    document.getElementById("captureMessage").innerText = "Training recognition model, please wait...";
+    const captureMsg = document.getElementById("captureMessage");
+    captureMsg.className = "status-line info";
+    captureMsg.innerHTML = "<span>Compiling LBPH facial embeddings, please wait...</span>";
+    
     try {
         const result = await safeFetchJson("/train_model", {
             method: "POST"
         });
 
-        document.getElementById("captureMessage").innerText = result.message;
-        showAlert(result.message, result.success ? "success" : "warning", "Model Training");
+        captureMsg.className = "status-line " + (result.success ? "success" : "error");
+        captureMsg.innerHTML = "<span>" + result.message + "</span>";
+        showAlert(result.message, result.success ? "success" : "warning", "Model Pipeline");
     } catch (error) {
+        captureMsg.className = "status-line error";
+        captureMsg.innerHTML = "<span>Model training failed: " + error.message + "</span>";
         showAlert("Model training failed: " + error.message, "error", "Training Error");
     }
 }
@@ -1092,7 +2327,11 @@ function startRecognition() {
     }
     if (recognitionTimer) return;
 
-    document.getElementById("recognitionMessage").innerText = "Face recognition running every 1.5 seconds...";
+    const recogMsg = document.getElementById("recognitionMessage");
+    if (recogMsg) {
+        recogMsg.className = "status-line info";
+        recogMsg.innerHTML = "<span>Biometric scanning active (polling every 1.5s)...</span>";
+    }
     recognitionTimer = setInterval(recognizeFace, 1500);
 }
 
@@ -1102,7 +2341,11 @@ function stopRecognition() {
         clearInterval(recognitionTimer);
         recognitionTimer = null;
     }
-    document.getElementById("recognitionMessage").innerText = "Recognition stopped.";
+    const recogMsg = document.getElementById("recognitionMessage");
+    if (recogMsg) {
+        recogMsg.className = "status-line";
+        recogMsg.innerHTML = "<span>Recognition polling halted.</span>";
+    }
 }
 
 // RECOGNIZE FACE VIA WEBCAM
@@ -1120,18 +2363,42 @@ async function recognizeFace() {
             body: data
         });
 
-        if (result.success) {
-            document.getElementById("recognitionMessage").innerHTML =
-                "<strong>" + result.name + " (" + result.roll_number + ")</strong>: " +
-                result.message + " | Match Confidence: " + result.confidence;
-        } else {
-            document.getElementById("recognitionMessage").innerText = result.message;
+        const recogMsg = document.getElementById("recognitionMessage");
+        if (recogMsg) {
+            if (result.success) {
+                recogMsg.className = "status-line success";
+                recogMsg.innerHTML =
+                    "<span>✅ <strong>" + result.name + " (" + result.roll_number + ")</strong>: " +
+                    result.message + " (Confidence: " + result.confidence + ")</span>";
+            } else {
+                recogMsg.className = "status-line";
+                recogMsg.innerHTML = "<span>" + result.message + "</span>";
+            }
         }
     } catch (error) {
-        document.getElementById("recognitionMessage").innerText = "Recognition request error: " + error.message;
+        const recogMsg = document.getElementById("recognitionMessage");
+        if (recogMsg) {
+            recogMsg.className = "status-line error";
+            recogMsg.innerHTML = "<span>Recognition error: " + error.message + "</span>";
+        }
     } finally {
         recognitionBusy = false;
     }
+}
+
+// CLIENT-SIDE QUICK TABLE FILTER
+function filterActiveTable(query) {
+    const q = query.toLowerCase().trim();
+    const tabTrain = document.getElementById("tabTrain");
+    const isTrain = tabTrain && tabTrain.classList.contains("active");
+    const table = isTrain ? document.getElementById("tableStudents") : document.getElementById("tableAttendance");
+    if (!table) return;
+
+    const rows = table.querySelectorAll("tbody tr");
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(q) ? "" : "none";
+    });
 }
 </script>
 

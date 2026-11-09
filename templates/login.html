@@ -2,141 +2,276 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Facet - Smart Face Attendance | Admin Login</title>
+    <title>Facet Enterprise — Biometric Access Management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
+        
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --primary-glow: rgba(99, 102, 241, 0.25);
+            --bg-dark: #090d16;
+            --surface: #0f172a;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
         body {
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #14213d, #1f4068, #162447);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.12) 0px, transparent 50%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
+            color: var(--text-main);
         }
-        .login-box {
-            background: #ffffff;
-            padding: 40px 35px;
-            width: 380px;
-            max-width: 100%;
-            border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+
+        .login-container {
+            width: 100%;
+            max-width: 420px;
+            position: relative;
         }
-        .logo-badge {
-            display: inline-block;
-            background: #e8f4ff;
-            color: #1f4068;
-            padding: 6px 14px;
+
+        .login-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
             border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 12px;
+            padding: 40px 36px;
+            box-shadow: 
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 25px 50px -12px rgba(0, 0, 0, 0.6);
         }
-        h2 {
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand-icon {
+            width: 52px;
+            height: 52px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 10px 25px -5px var(--primary-glow);
+        }
+
+        .brand-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .brand-title {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             margin: 0 0 6px 0;
-            color: #14213d;
-            font-size: 24px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        p.subtitle {
-            margin: 0 0 25px 0;
-            color: #6c757d;
+
+        .brand-badge {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 12px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            letter-spacing: 0.05em;
+        }
+
+        .brand-subtitle {
+            margin: 0;
             font-size: 14px;
+            color: var(--text-muted);
         }
+
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
+
         label {
             display: block;
             font-size: 13px;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 6px;
+            color: #cbd5e1;
+            margin-bottom: 8px;
         }
+
+        .input-wrapper {
+            position: relative;
+        }
+
         input {
             width: 100%;
             padding: 12px 14px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
+            background: rgba(2, 6, 23, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
             font-size: 14px;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            color: #ffffff;
+            transition: all 0.2s ease;
         }
+
+        input::placeholder {
+            color: #64748b;
+        }
+
         input:focus {
             outline: none;
-            border-color: #2874a6;
-            box-shadow: 0 0 0 3px rgba(40, 116, 166, 0.15);
+            border-color: #6366f1;
+            background: rgba(2, 6, 23, 0.9);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
         }
-        button {
+
+        button.btn-submit {
             width: 100%;
             padding: 13px;
-            background: #2874a6;
-            color: white;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #ffffff;
             border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: bold;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             margin-top: 10px;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px 0 var(--primary-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        button:hover {
-            background: #1b4f72;
+
+        button.btn-submit:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px 0 var(--primary-glow);
         }
-        .error {
-            background: #ffebe9;
-            color: #cf222e;
-            padding: 10px 14px;
-            border-radius: 6px;
+
+        button.btn-submit:active {
+            transform: translateY(0);
+        }
+
+        .error-banner {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 12px 14px;
+            border-radius: 10px;
             font-size: 13px;
-            margin-bottom: 18px;
-            border: 1px solid #ffc1c0;
+            margin-bottom: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        .default-credentials {
-            margin-top: 25px;
-            padding-top: 15px;
-            border-top: 1px dashed #e1e4e8;
-            font-size: 12px;
-            color: #6a737d;
+
+        .footer-note {
+            margin-top: 26px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
             text-align: center;
+            font-size: 12.5px;
+            color: var(--text-muted);
         }
-        .default-credentials code {
-            background: #f6f8fa;
-            padding: 2px 6px;
-            border-radius: 4px;
-            color: #24292e;
+
+        .badge-cred {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-top: 8px;
         }
     </style>
 </head>
 <body>
 
-<div class="login-box">
-    <div style="text-align: center;">
-        <span class="logo-badge">Facet Biometrics</span>
-        <h2>Face Attendance System</h2>
-        <p class="subtitle">MCA Final Year Demonstration</p>
-    </div>
-
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
-
-    <form method="POST">
-        <div class="form-group">
-            <label for="username">Administrator Username</label>
-            <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
+<div class="login-container">
+    <div class="login-card">
+        <div class="brand-header">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M7 3H5a2 2 0 0 0-2 2v2"></path>
+                    <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                    <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                    <path d="M3 17v2a2 2 0 0 0 2 2h2"></path>
+                    <circle cx="9" cy="10" r="1.5" fill="currentColor"></circle>
+                    <circle cx="15" cy="10" r="1.5" fill="currentColor"></circle>
+                    <path d="M9 15c1 1 5 1 6 0"></path>
+                </svg>
+            </div>
+            <h1 class="brand-title">Facet <span class="brand-badge">Enterprise</span></h1>
+            <p class="brand-subtitle">AI Biometric Identity & Attendance Suite</p>
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" placeholder="Enter password" required>
+        {% if error %}
+            <div class="error-banner">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{{ error }}</span>
+            </div>
+        {% endif %}
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="username">Administrator ID</label>
+                <div class="input-wrapper">
+                    <input type="text" id="username" name="username" placeholder="admin" required autofocus autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrapper">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+                <span>Sign in to Console</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+        </form>
+
+        <div class="footer-note">
+            <div>Default demonstration credentials:</div>
+            <div class="badge-cred">admin / admin123</div>
         </div>
-
-        <button type="submit">Sign In to Dashboard</button>
-    </form>
-
-    <div class="default-credentials">
-        Default Login: <code>admin</code> / <code>admin123</code>
     </div>
 </div>
 

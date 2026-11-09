@@ -216,9 +216,17 @@ def dashboard():
         (today,)
     ).fetchone()[0]
 
-    students = conn.execute(
+    students_raw = conn.execute(
         "SELECT * FROM students ORDER BY id DESC"
     ).fetchall()
+
+    students = []
+    for s in students_raw:
+        s_dict = dict(s)
+        folder = os.path.join(DATASET, str(s["id"]))
+        sample_count = len([f for f in os.listdir(folder) if f.lower().endswith(".jpg")]) if os.path.exists(folder) else 0
+        s_dict["sample_count"] = sample_count
+        students.append(s_dict)
 
     records = conn.execute("""
         SELECT students.name, students.roll_number, students.department,
@@ -310,6 +318,7 @@ def register_student():
             })
 
         conn = get_db()
+
         try:
             cursor = conn.execute("""
                 INSERT INTO students
@@ -334,14 +343,14 @@ def register_student():
                 "student_id": student_id,
                 "name": name,
                 "roll_number": roll,
-                "message": f"Student '{name}' registered successfully! ID is {student_id}."
+                "message": f"Student '{name}' registered successfully! Assigned Unique ID #{student_id}."
             })
 
         except sqlite3.IntegrityError:
             conn.close()
             return jsonify({
                 "success": False,
-                "message": f"Roll number '{roll}' already exists"
+                "message": f"Roll number '{roll}' already exists in database records."
             })
     except Exception as e:
         import traceback
@@ -397,20 +406,26 @@ def capture_face():
 
         existing = len([f for f in os.listdir(folder) if f.lower().endswith(".jpg")])
 
-        if existing >= 30:
+        if existing >= 15:
             return jsonify({
                 "success": False,
                 "count": existing,
-                "message": "Maximum 30 samples already collected for this student"
+                "message": "Maximum samples already collected for this student"
             })
 
         filename = os.path.join(folder, f"face_{existing + 1}.jpg")
         cv2.imwrite(filename, face)
 
+        count = existing + 1
+        if count >= 5:
+            msg = f"Sample {count}/5 saved for {student['name']} (5/5 Target Reached! Ready to train)"
+        else:
+            msg = f"Sample {count}/5 saved for {student['name']}"
+
         return jsonify({
             "success": True,
-            "count": existing + 1,
-            "message": f"Sample {existing + 1}/30 saved for {student['name']}"
+            "count": count,
+            "message": msg
         })
     except Exception as e:
         import traceback

@@ -45,7 +45,7 @@ def test_admin_login_success(client):
     response = login_admin(client)
     assert response.status_code == 200
     assert b"Facet" in response.data
-    assert b"Total Registered Students" in response.data
+    assert b"Student Biometric Registration" in response.data
 
 def test_admin_login_invalid(client):
     response = login_admin(client, "admin", "wrongpassword")
