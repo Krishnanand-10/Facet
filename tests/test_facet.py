@@ -94,6 +94,17 @@ def test_student_registration_and_duplicate(client):
     assert data_dup["success"] is False
     assert "already exists" in data_dup["message"]
 
+    # Attempt case-insensitive duplicate (lowercase)
+    res_case = client.post("/register_student", data={
+        "name": "Alice Lowercase",
+        "roll_number": "mca2026001",
+        "department": "Computer Applications",
+        "semester": "Semester 4"
+    })
+    data_case = res_case.get_json()
+    assert data_case["success"] is False
+    assert "already exists" in data_case["message"]
+
 def test_empty_student_registration(client):
     login_admin(client)
     res = client.post("/register_student", data={"name": "", "roll_number": ""})
@@ -175,3 +186,38 @@ def test_delete_student(client):
     conn.close()
     assert st is None
     assert not os.path.exists(folder)
+
+
+def test_biometric_conflict_detection(client):
+    login_admin(client)
+
+    # Register student 1
+    reg1 = client.post("/register_student", data={
+        "name": "Krishna One",
+        "roll_number": "MCA2026109",
+        "department": "MCA",
+        "semester": "4"
+    })
+    s1_id = reg1.get_json()["student_id"]
+
+    # Register student 2
+    reg2 = client.post("/register_student", data={
+        "name": "Krishna Two",
+        "roll_number": "MCA2026110",
+        "department": "MCA",
+        "semester": "4"
+    })
+    s2_id = reg2.get_json()["student_id"]
+
+    # Save a face sample for student 1
+    folder1 = os.path.join(facet_app.DATASET, str(s1_id))
+    os.makedirs(folder1, exist_ok=True)
+    face_sample = np.ones((200, 200), dtype=np.uint8) * 128
+    cv2.circle(face_sample, (100, 100), 40, (50,), -1)
+    cv2.imwrite(os.path.join(folder1, "face_1.jpg"), face_sample)
+
+    # Verify conflict is detected when student 2 captures the identical face
+    has_conflict, other = facet_app.check_biometric_conflict(face_sample, s2_id)
+    assert has_conflict is True
+    assert other["id"] == s1_id
+    assert other["roll_number"] == "MCA2026109"

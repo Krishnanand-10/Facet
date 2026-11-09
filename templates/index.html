@@ -2366,10 +2366,76 @@ async function recognizeFace() {
         const recogMsg = document.getElementById("recognitionMessage");
         if (recogMsg) {
             if (result.success) {
-                recogMsg.className = "status-line success";
-                recogMsg.innerHTML =
-                    "<span>✅ <strong>" + result.name + " (" + result.roll_number + ")</strong>: " +
-                    result.message + " (Confidence: " + result.confidence + ")</span>";
+                if (result.is_new_mark) {
+                    // Prepend to attendance table dynamically
+                    const tbody = document.getElementById("attendanceTableBody");
+                    if (tbody) {
+                        // Remove empty state row if present
+                        const emptyRow = tbody.querySelector("tr td[colspan]");
+                        if (emptyRow) emptyRow.parentElement.remove();
+
+                        const tr = document.createElement("tr");
+                        tr.innerHTML = `
+                            <td><strong>${result.name}</strong></td>
+                            <td><span style="font-family: monospace;">${result.roll_number}</span></td>
+                            <td>${result.department || '—'}</td>
+                            <td>${result.date}</td>
+                            <td><span style="font-family: monospace;">${result.time}</span></td>
+                            <td>
+                                <span class="tag-present">
+                                    <span class="status-dot"></span> Present
+                                </span>
+                            </td>
+                        `;
+                        tbody.insertBefore(tr, tbody.firstChild);
+
+                        const countEl = document.getElementById("todayAttendanceCount");
+                        if (countEl) {
+                            const cur = parseInt(countEl.innerText) || 0;
+                            countEl.innerText = cur + 1;
+                        }
+                    }
+
+                    // Anti-rapid proxy cooldown: pause scanning for 4 seconds
+                    let cooldownSec = 4;
+                    if (recognitionTimer) {
+                        clearInterval(recognitionTimer);
+                        recognitionTimer = null;
+                    }
+                    recogMsg.className = "status-line success";
+                    recogMsg.innerHTML = `<span>🎉 <strong>${result.name} (${result.roll_number})</strong>: Attendance marked at ${result.time}! Next student scan ready in ${cooldownSec}s...</span>`;
+
+                    const cooldownInterval = setInterval(() => {
+                        cooldownSec--;
+                        if (cooldownSec > 0) {
+                            recogMsg.className = "status-line success";
+                            recogMsg.innerHTML = `<span>🎉 <strong>${result.name} (${result.roll_number})</strong>: Attendance marked! Next student scan ready in ${cooldownSec}s...</span>`;
+                        } else {
+                            clearInterval(cooldownInterval);
+                            if (stream) {
+                                recogMsg.className = "status-line info";
+                                recogMsg.innerHTML = "<span>Biometric scanning active. Next student please step forward.</span>";
+                                recognitionTimer = setInterval(recognizeFace, 1500);
+                            }
+                        }
+                    }, 1000);
+                } else {
+                    // Already marked today - pause briefly to avoid rapid duplicate chatter
+                    recogMsg.className = "status-line warning";
+                    recogMsg.innerHTML = `<span>⚠️ <strong>${result.name} (${result.roll_number})</strong>: Attendance already recorded today. (Ready for next student)</span>`;
+
+                    if (recognitionTimer) {
+                        clearInterval(recognitionTimer);
+                        recognitionTimer = null;
+                        setTimeout(() => {
+                            if (stream) {
+                                recogMsg.className = "status-line info";
+                                recogMsg.innerHTML = "<span>Biometric scanning active. Next student please step forward.</span>";
+                                recognitionTimer = setInterval(recognizeFace, 1500);
+                            }
+                        }, 2500);
+                    }
+                }
             } else {
                 recogMsg.className = "status-line";
                 recogMsg.innerHTML = "<span>" + result.message + "</span>";

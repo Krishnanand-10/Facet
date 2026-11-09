@@ -76,11 +76,16 @@ def initialize_database():
         CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            roll_number TEXT UNIQUE NOT NULL,
+            roll_number TEXT UNIQUE COLLATE NOCASE NOT NULL,
             department TEXT,
             semester TEXT,
             created_at TEXT NOT NULL
         )
+    """)
+
+    conn.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_students_roll_nocase
+        ON students (LOWER(TRIM(roll_number)))
     """)
 
     conn.execute("""
@@ -319,6 +324,19 @@ def register_student():
 
         conn = get_db()
 
+        # Strict uniqueness validation: no two students can share the same roll number (case-insensitive and trimmed)
+        existing = conn.execute(
+            "SELECT id, name, roll_number FROM students WHERE LOWER(TRIM(roll_number)) = LOWER(?)",
+            (roll,)
+        ).fetchone()
+
+        if existing:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": f"Roll number '{roll}' already exists (assigned to student '{existing['name']}', ID #{existing['id']}). Duplicate roll numbers are not permitted."
+            })
+
         try:
             cursor = conn.execute("""
                 INSERT INTO students
@@ -361,6 +379,72 @@ def register_student():
         }), 500
 
 
+def check_biometric_conflict(face, current_student_id):
+    """
+    Checks whether a candidate face sample already belongs to another enrolled student.
+    Returns (conflict_found: bool, conflicting_student_info: dict or None).
+    """
+    try:
+        cur_id = int(current_student_id)
+    except (ValueError, TypeError):
+        return False, None
+
+    # 1. Check against active trained model if available
+    if model_ready:
+        try:
+            label, distance = recognizer.predict(face)
+            if label != cur_id and distance < 55.0:
+                conn = get_db()
+                other = conn.execute(
+                    "SELECT id, name, roll_number FROM students WHERE id = ?",
+                    (int(label),)
+                ).fetchone()
+                conn.close()
+                if other:
+                    return True, dict(other)
+        except Exception:
+            pass
+
+    # 2. Check directly against captured sample files in DATASET from other students
+    other_faces = []
+    other_labels = []
+    if os.path.exists(DATASET):
+        for s_dir in os.listdir(DATASET):
+            if not s_dir.isdigit() or int(s_dir) == cur_id:
+                continue
+            s_folder = os.path.join(DATASET, s_dir)
+            if not os.path.isdir(s_folder):
+                continue
+            for fname in os.listdir(s_folder):
+                if fname.lower().endswith((".jpg", ".png")):
+                    fpath = os.path.join(s_folder, fname)
+                    img = cv2.imread(fpath, cv2.IMREAD_GRAYSCALE)
+                    if img is not None:
+                        if img.shape != (200, 200):
+                            img = cv2.resize(img, (200, 200))
+                        other_faces.append(img)
+                        other_labels.append(int(s_dir))
+
+    if other_faces and other_labels:
+        try:
+            temp_rec = cv2.face.LBPHFaceRecognizer_create()
+            temp_rec.train(other_faces, np.array(other_labels, dtype=np.int32))
+            pred_id, dist = temp_rec.predict(face)
+            if dist < 55.0:
+                conn = get_db()
+                other = conn.execute(
+                    "SELECT id, name, roll_number FROM students WHERE id = ?",
+                    (int(pred_id),)
+                ).fetchone()
+                conn.close()
+                if other:
+                    return True, dict(other)
+        except Exception:
+            pass
+
+    return False, None
+
+
 @app.route("/capture_face", methods=["POST"])
 @login_required
 def capture_face():
@@ -399,6 +483,14 @@ def capture_face():
             return jsonify({
                 "success": False,
                 "message": "No face detected. Please ensure your face is clearly visible."
+            })
+
+        # Biometric uniqueness check: prevent enrolling the same face for two different students
+        has_conflict, other_student = check_biometric_conflict(face, student_id)
+        if has_conflict and other_student:
+            return jsonify({
+                "success": False,
+                "message": f"Biometric Conflict: This face already belongs to enrolled student '{other_student['name']}' (Roll No: {other_student['roll_number']}). Each student must have a distinct biometric identity."
             })
 
         folder = os.path.join(DATASET, str(student_id))
@@ -475,6 +567,43 @@ def train_model():
                 "success": False,
                 "message": "No face samples available to train. Please capture student faces first."
             })
+
+        # Cross-validation: detect if multiple students have identical/conflicting facial samples
+        unique_student_ids = list(set(labels))
+        if len(unique_student_ids) > 1:
+            samples_by_student = {}
+            for f, l in zip(faces, labels):
+                samples_by_student.setdefault(l, []).append(f)
+
+            conflict_pair = None
+            for i in range(len(unique_student_ids)):
+                for j in range(i + 1, len(unique_student_ids)):
+                    s1 = unique_student_ids[i]
+                    s2 = unique_student_ids[j]
+
+                    chk_rec = cv2.face.LBPHFaceRecognizer_create()
+                    chk_rec.train(samples_by_student[s1], np.array([s1] * len(samples_by_student[s1]), dtype=np.int32))
+                    for sample in samples_by_student[s2]:
+                        _, d = chk_rec.predict(sample)
+                        if d < 48.0:
+                            conflict_pair = (s1, s2)
+                            break
+                    if conflict_pair:
+                        break
+                if conflict_pair:
+                    break
+
+            if conflict_pair:
+                conn = get_db()
+                st1 = conn.execute("SELECT name, roll_number FROM students WHERE id = ?", (conflict_pair[0],)).fetchone()
+                st2 = conn.execute("SELECT name, roll_number FROM students WHERE id = ?", (conflict_pair[1],)).fetchone()
+                conn.close()
+                desc1 = f"'{st1['name']}' (Roll: {st1['roll_number']})" if st1 else f"Student #{conflict_pair[0]}"
+                desc2 = f"'{st2['name']}' (Roll: {st2['roll_number']})" if st2 else f"Student #{conflict_pair[1]}"
+                return jsonify({
+                    "success": False,
+                    "message": f"Biometric Conflict: Conflicting facial samples detected between {desc1} and {desc2}. Two students cannot share identical facial biometrics. Please delete the duplicate profile or recapture distinct samples."
+                })
 
         recognizer.train(faces, np.array(labels, dtype=np.int32))
         recognizer.save(MODEL_PATH)
@@ -569,6 +698,7 @@ def recognize():
         date = now.strftime("%Y-%m-%d")
         time = now.strftime("%H:%M:%S")
 
+        is_new_mark = False
         try:
             conn.execute("""
                 INSERT INTO attendance(student_id, date, time)
@@ -576,16 +706,23 @@ def recognize():
             """, (int(label), date, time))
             conn.commit()
             message = "Attendance marked successfully"
+            is_new_mark = True
         except sqlite3.IntegrityError:
             message = "Attendance already marked today"
+            is_new_mark = False
 
         conn.close()
 
         return jsonify({
             "success": True,
+            "student_id": student["id"],
             "name": student["name"],
             "roll_number": student["roll_number"],
+            "department": student["department"] or "General",
+            "date": date,
+            "time": time,
             "confidence": round(float(confidence), 2),
+            "is_new_mark": is_new_mark,
             "message": message
         })
     except Exception as e:
