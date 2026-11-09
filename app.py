@@ -118,9 +118,52 @@ def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if "admin" not in session:
+            # If AJAX / API request, return JSON 401 instead of redirecting to HTML login page
+            is_api = (
+                request.path in ["/register_student", "/capture_face", "/train_model", "/recognize"] or
+                request.headers.get("X-Requested-With") == "XMLHttpRequest" or
+                request.is_json or
+                "application/json" in request.headers.get("Accept", "")
+            )
+            if is_api:
+                return jsonify({
+                    "success": False,
+                    "session_expired": True,
+                    "message": "Session expired or not authenticated. Please log in again."
+                }), 401
             return redirect(url_for("login"))
         return func(*args, **kwargs)
     return wrapper
+
+
+@app.errorhandler(500)
+def handle_server_error(e):
+    is_api = (
+        request.path in ["/register_student", "/capture_face", "/train_model", "/recognize"] or
+        request.headers.get("X-Requested-With") == "XMLHttpRequest" or
+        request.is_json
+    )
+    if is_api:
+        return jsonify({
+            "success": False,
+            "message": f"Internal server error: {str(e)}"
+        }), 500
+    return "Internal Server Error", 500
+
+
+@app.errorhandler(404)
+def handle_not_found(e):
+    is_api = (
+        request.path in ["/register_student", "/capture_face", "/train_model", "/recognize"] or
+        request.headers.get("X-Requested-With") == "XMLHttpRequest" or
+        request.is_json
+    )
+    if is_api:
+        return jsonify({
+            "success": False,
+            "message": "API endpoint not found"
+        }), 404
+    return "Not Found", 404
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -254,112 +297,128 @@ def extract_face(image):
 @app.route("/register_student", methods=["POST"])
 @login_required
 def register_student():
-    name = request.form.get("name", "").strip()
-    roll = request.form.get("roll_number", "").strip()
-    department = request.form.get("department", "").strip()
-    semester = request.form.get("semester", "").strip()
-
-    if not name or not roll:
-        return jsonify({
-            "success": False,
-            "message": "Name and roll number are required"
-        })
-
-    conn = get_db()
     try:
-        cursor = conn.execute("""
-            INSERT INTO students
-            (name, roll_number, department, semester, created_at)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            name,
-            roll,
-            department,
-            semester,
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ))
+        name = request.form.get("name", "").strip()
+        roll = request.form.get("roll_number", "").strip()
+        department = request.form.get("department", "").strip()
+        semester = request.form.get("semester", "").strip()
 
-        student_id = cursor.lastrowid
-        conn.commit()
-        conn.close()
+        if not name or not roll:
+            return jsonify({
+                "success": False,
+                "message": "Name and roll number are required"
+            })
 
-        os.makedirs(os.path.join(DATASET, str(student_id)), exist_ok=True)
+        conn = get_db()
+        try:
+            cursor = conn.execute("""
+                INSERT INTO students
+                (name, roll_number, department, semester, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                name,
+                roll,
+                department,
+                semester,
+                datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ))
 
-        return jsonify({
-            "success": True,
-            "student_id": student_id,
-            "name": name,
-            "roll_number": roll,
-            "message": f"Student '{name}' registered successfully! ID is {student_id}."
-        })
+            student_id = cursor.lastrowid
+            conn.commit()
+            conn.close()
 
-    except sqlite3.IntegrityError:
-        conn.close()
+            os.makedirs(os.path.join(DATASET, str(student_id)), exist_ok=True)
+
+            return jsonify({
+                "success": True,
+                "student_id": student_id,
+                "name": name,
+                "roll_number": roll,
+                "message": f"Student '{name}' registered successfully! ID is {student_id}."
+            })
+
+        except sqlite3.IntegrityError:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": f"Roll number '{roll}' already exists"
+            })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "message": f"Roll number '{roll}' already exists"
-        })
+            "message": f"Server error: {str(e)}"
+        }), 500
 
 
 @app.route("/capture_face", methods=["POST"])
 @login_required
 def capture_face():
-    student_id = request.form.get("student_id", "").strip()
-    image_data = request.form.get("image", "").strip()
+    try:
+        student_id = request.form.get("student_id", "").strip()
+        image_data = request.form.get("image", "").strip()
 
-    if not student_id.isdigit():
+        if not student_id.isdigit():
+            return jsonify({
+                "success": False,
+                "message": "Invalid student ID"
+            })
+
+        conn = get_db()
+        student = conn.execute(
+            "SELECT id, name, roll_number FROM students WHERE id = ?",
+            (int(student_id),)
+        ).fetchone()
+        conn.close()
+
+        if not student:
+            return jsonify({
+                "success": False,
+                "message": "Student not found in database"
+            })
+
+        image = decode_image(image_data)
+        if image is None:
+            return jsonify({
+                "success": False,
+                "message": "Invalid image payload"
+            })
+
+        face = extract_face(image)
+        if face is None:
+            return jsonify({
+                "success": False,
+                "message": "No face detected. Please ensure your face is clearly visible."
+            })
+
+        folder = os.path.join(DATASET, str(student_id))
+        os.makedirs(folder, exist_ok=True)
+
+        existing = len([f for f in os.listdir(folder) if f.lower().endswith(".jpg")])
+
+        if existing >= 30:
+            return jsonify({
+                "success": False,
+                "count": existing,
+                "message": "Maximum 30 samples already collected for this student"
+            })
+
+        filename = os.path.join(folder, f"face_{existing + 1}.jpg")
+        cv2.imwrite(filename, face)
+
+        return jsonify({
+            "success": True,
+            "count": existing + 1,
+            "message": f"Sample {existing + 1}/30 saved for {student['name']}"
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "message": "Invalid student ID"
-        })
-
-    conn = get_db()
-    student = conn.execute(
-        "SELECT id, name, roll_number FROM students WHERE id = ?",
-        (int(student_id),)
-    ).fetchone()
-    conn.close()
-
-    if not student:
-        return jsonify({
-            "success": False,
-            "message": "Student not found in database"
-        })
-
-    image = decode_image(image_data)
-    if image is None:
-        return jsonify({
-            "success": False,
-            "message": "Invalid image payload"
-        })
-
-    face = extract_face(image)
-    if face is None:
-        return jsonify({
-            "success": False,
-            "message": "No face detected. Please ensure your face is clearly visible."
-        })
-
-    folder = os.path.join(DATASET, str(student_id))
-    os.makedirs(folder, exist_ok=True)
-
-    existing = len([f for f in os.listdir(folder) if f.lower().endswith(".jpg")])
-
-    if existing >= 30:
-        return jsonify({
-            "success": False,
-            "count": existing,
-            "message": "Maximum 30 samples already collected for this student"
-        })
-
-    filename = os.path.join(folder, f"face_{existing + 1}.jpg")
-    cv2.imwrite(filename, face)
-
-    return jsonify({
-        "success": True,
-        "count": existing + 1,
-        "message": f"Sample {existing + 1}/30 saved for {student['name']}"
-    })
+            "message": f"Server error during capture: {str(e)}"
+        }), 500
 
 
 # ---------------- TRAIN MODEL ----------------
@@ -367,49 +426,57 @@ def capture_face():
 @app.route("/train_model", methods=["POST"])
 @login_required
 def train_model():
-    global model_ready
+    try:
+        global model_ready
 
-    faces = []
-    labels = []
+        faces = []
+        labels = []
 
-    conn = get_db()
-    students = conn.execute("SELECT id FROM students").fetchall()
-    conn.close()
+        conn = get_db()
+        students = conn.execute("SELECT id FROM students").fetchall()
+        conn.close()
 
-    for student in students:
-        student_id = student["id"]
-        folder = os.path.join(DATASET, str(student_id))
+        for student in students:
+            student_id = student["id"]
+            folder = os.path.join(DATASET, str(student_id))
 
-        if not os.path.isdir(folder):
-            continue
-
-        for filename in os.listdir(folder):
-            if not filename.lower().endswith(".jpg"):
+            if not os.path.isdir(folder):
                 continue
 
-            path = os.path.join(folder, filename)
-            face = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+            for filename in os.listdir(folder):
+                if not filename.lower().endswith(".jpg"):
+                    continue
 
-            if face is not None:
-                face = cv2.resize(face, (200, 200))
-                faces.append(face)
-                labels.append(student_id)
+                path = os.path.join(folder, filename)
+                face = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
 
-    if not faces:
+                if face is not None:
+                    face = cv2.resize(face, (200, 200))
+                    faces.append(face)
+                    labels.append(student_id)
+
+        if not faces:
+            return jsonify({
+                "success": False,
+                "message": "No face samples available to train. Please capture student faces first."
+            })
+
+        recognizer.train(faces, np.array(labels, dtype=np.int32))
+        recognizer.save(MODEL_PATH)
+        model_ready = True
+
+        unique_students = len(set(labels))
+        return jsonify({
+            "success": True,
+            "message": f"Model trained successfully with {len(faces)} face samples across {unique_students} student(s)!"
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "message": "No face samples available to train. Please capture student faces first."
-        })
-
-    recognizer.train(faces, np.array(labels, dtype=np.int32))
-    recognizer.save(MODEL_PATH)
-    model_ready = True
-
-    unique_students = len(set(labels))
-    return jsonify({
-        "success": True,
-        "message": f"Model trained successfully with {len(faces)} face samples across {unique_students} student(s)!"
-    })
+            "message": f"Server error during training: {str(e)}"
+        }), 500
 
 
 def load_model():
@@ -431,80 +498,88 @@ load_model()
 @app.route("/recognize", methods=["POST"])
 @login_required
 def recognize():
-    if not model_ready:
-        return jsonify({
-            "success": False,
-            "message": "Face recognition model is not trained yet. Please train it first."
-        })
-
-    image_data = request.form.get("image", "").strip()
-    image = decode_image(image_data)
-
-    if image is None:
-        return jsonify({
-            "success": False,
-            "message": "Invalid image received"
-        })
-
-    face = extract_face(image)
-    if face is None:
-        return jsonify({
-            "success": False,
-            "message": "No face detected in camera frame"
-        })
-
     try:
-        label, confidence = recognizer.predict(face)
-    except Exception:
-        return jsonify({
-            "success": False,
-            "message": "Recognition processing error"
-        })
+        if not model_ready:
+            return jsonify({
+                "success": False,
+                "message": "Face recognition model is not trained yet. Please train it first."
+            })
 
-    # LBPH: confidence represents Euclidean distance. Smaller distance = better match.
-    if confidence > CONFIDENCE_LIMIT:
-        return jsonify({
-            "success": False,
-            "confidence": round(float(confidence), 2),
-            "message": f"Face not recognized (Distance: {round(float(confidence), 1)} > {CONFIDENCE_LIMIT})"
-        })
+        image_data = request.form.get("image", "").strip()
+        image = decode_image(image_data)
 
-    conn = get_db()
-    student = conn.execute(
-        "SELECT * FROM students WHERE id = ?",
-        (int(label),)
-    ).fetchone()
+        if image is None:
+            return jsonify({
+                "success": False,
+                "message": "Invalid image received"
+            })
 
-    if student is None:
+        face = extract_face(image)
+        if face is None:
+            return jsonify({
+                "success": False,
+                "message": "No face detected in camera frame"
+            })
+
+        try:
+            label, confidence = recognizer.predict(face)
+        except Exception:
+            return jsonify({
+                "success": False,
+                "message": "Recognition processing error"
+            })
+
+        # LBPH: confidence represents Euclidean distance. Smaller distance = better match.
+        if confidence > CONFIDENCE_LIMIT:
+            return jsonify({
+                "success": False,
+                "confidence": round(float(confidence), 2),
+                "message": f"Face not recognized (Distance: {round(float(confidence), 1)} > {CONFIDENCE_LIMIT})"
+            })
+
+        conn = get_db()
+        student = conn.execute(
+            "SELECT * FROM students WHERE id = ?",
+            (int(label),)
+        ).fetchone()
+
+        if student is None:
+            conn.close()
+            return jsonify({
+                "success": False,
+                "message": "Student record not found in system"
+            })
+
+        now = datetime.now()
+        date = now.strftime("%Y-%m-%d")
+        time = now.strftime("%H:%M:%S")
+
+        try:
+            conn.execute("""
+                INSERT INTO attendance(student_id, date, time)
+                VALUES (?, ?, ?)
+            """, (int(label), date, time))
+            conn.commit()
+            message = "Attendance marked successfully"
+        except sqlite3.IntegrityError:
+            message = "Attendance already marked today"
+
         conn.close()
+
+        return jsonify({
+            "success": True,
+            "name": student["name"],
+            "roll_number": student["roll_number"],
+            "confidence": round(float(confidence), 2),
+            "message": message
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "message": "Student record not found in system"
-        })
-
-    now = datetime.now()
-    date = now.strftime("%Y-%m-%d")
-    time = now.strftime("%H:%M:%S")
-
-    try:
-        conn.execute("""
-            INSERT INTO attendance(student_id, date, time)
-            VALUES (?, ?, ?)
-        """, (int(label), date, time))
-        conn.commit()
-        message = "Attendance marked successfully"
-    except sqlite3.IntegrityError:
-        message = "Attendance already marked today"
-
-    conn.close()
-
-    return jsonify({
-        "success": True,
-        "name": student["name"],
-        "roll_number": student["roll_number"],
-        "confidence": round(float(confidence), 2),
-        "message": message
-    })
+            "message": f"Server error during recognition: {str(e)}"
+        }), 500
 
 
 # ---------------- ATTENDANCE REPORT & EXPORT ----------------

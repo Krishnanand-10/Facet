@@ -559,6 +559,41 @@ function onSelectExistingStudent(studentId) {
     selectStudentForCapture(studentId, option.dataset.name, option.dataset.roll);
 }
 
+// SAFE JSON FETCH WRAPPER
+async function safeFetchJson(url, options = {}) {
+    options.headers = options.headers || {};
+    if (!options.headers["X-Requested-With"]) {
+        options.headers["X-Requested-With"] = "XMLHttpRequest";
+    }
+
+    const response = await fetch(url, options);
+
+    if (response.redirected && (response.url.endsWith("/") || response.url.includes("login"))) {
+        alert("Your session has expired. Redirecting to login page...");
+        window.location.href = "/";
+        throw new Error("Session expired. Redirecting to login.");
+    }
+
+    if (response.status === 401) {
+        alert("Session expired. Please log in again.");
+        window.location.href = "/";
+        throw new Error("Session expired (401)");
+    }
+
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+        const text = await response.text();
+        if (text.includes("<!DOCTYPE") || text.includes("<html") || text.includes("Administrator Login")) {
+            alert("Session expired. Please log in again.");
+            window.location.href = "/";
+            throw new Error("Session expired (HTML returned)");
+        }
+        throw new Error("Server returned non-JSON response (" + response.status + ")");
+    }
+
+    return await response.json();
+}
+
 // REGISTER STUDENT
 document.getElementById("studentForm").addEventListener("submit", async function(event) {
     event.preventDefault();
@@ -570,11 +605,10 @@ document.getElementById("studentForm").addEventListener("submit", async function
     data.append("semester", document.getElementById("semester").value.trim());
 
     try {
-        const response = await fetch("/register_student", {
+        const result = await safeFetchJson("/register_student", {
             method: "POST",
             body: data
         });
-        const result = await response.json();
 
         document.getElementById("registerMessage").innerText = result.message;
 
@@ -582,7 +616,7 @@ document.getElementById("studentForm").addEventListener("submit", async function
             currentStudentId = result.student_id;
             currentStudentName = result.name;
 
-            // Note: per project spec, we do NOT reload page so student ID is kept
+            // Preserve student ID without reloading
             selectStudentForCapture(result.student_id, result.name, result.roll_number);
 
             // Add newly registered student to dropdown
@@ -626,11 +660,10 @@ async function captureFace() {
         data.append("student_id", currentStudentId);
         data.append("image", image);
 
-        const response = await fetch("/capture_face", {
+        const result = await safeFetchJson("/capture_face", {
             method: "POST",
             body: data
         });
-        const result = await response.json();
 
         if (result.success) {
             captureMsg.style.background = "#e6f4ea";
@@ -654,10 +687,9 @@ async function captureFace() {
 async function trainModel() {
     document.getElementById("captureMessage").innerText = "Training recognition model, please wait...";
     try {
-        const response = await fetch("/train_model", {
+        const result = await safeFetchJson("/train_model", {
             method: "POST"
         });
-        const result = await response.json();
 
         document.getElementById("captureMessage").innerText = result.message;
         alert(result.message);
@@ -697,11 +729,10 @@ async function recognizeFace() {
         const data = new FormData();
         data.append("image", image);
 
-        const response = await fetch("/recognize", {
+        const result = await safeFetchJson("/recognize", {
             method: "POST",
             body: data
         });
-        const result = await response.json();
 
         if (result.success) {
             document.getElementById("recognitionMessage").innerHTML =
