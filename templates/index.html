@@ -284,6 +284,86 @@
             min-width: 180px;
             margin: 0;
         }
+
+        /* CUSTOM IN-PAGE MODAL DIALOG */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: modalFadeIn 0.2s ease-out;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            width: 90%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalPop 0.2s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes modalPop {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            padding: 18px 22px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .modal-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 17px;
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+            font-size: 14.5px;
+            line-height: 1.55;
+            color: #475569;
+        }
+
+        .modal-footer {
+            padding: 14px 22px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #334155;
+        }
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
     </style>
 </head>
 
@@ -424,12 +504,10 @@
                                         onclick="selectStudentForCapture('{{ student.id }}', '{{ student.name }}', '{{ student.roll_number }}')">
                                     Capture Samples
                                 </button>
-                                <form method="POST" action="/delete_student/{{ student.id }}"
-                                      onsubmit="return confirm('Are you sure you want to delete {{ student.name }} and their attendance data?')">
-                                    <button class="btn-red" type="submit" style="padding: 6px 12px; font-size: 12px;">
-                                        Delete
-                                    </button>
-                                </form>
+                                <button class="btn-red" type="button" style="padding: 6px 12px; font-size: 12px;"
+                                        onclick="confirmDeleteStudent('{{ student.id }}', '{{ student.name }}')">
+                                    Delete
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -488,6 +566,21 @@
 
 </div>
 
+<!-- CUSTOM IN-BROWSER MODAL DIALOG (Replaces "localhost says" popups) -->
+<div id="customModalOverlay" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+        <div id="modalHeader" class="modal-header">
+            <span id="modalIcon" class="modal-icon">ℹ️</span>
+            <h3 id="modalTitle" class="modal-title">Facet System</h3>
+        </div>
+        <div id="modalBody" class="modal-body"></div>
+        <div class="modal-footer">
+            <button id="modalCancelBtn" type="button" class="btn btn-secondary" style="display: none;">Cancel</button>
+            <button id="modalConfirmBtn" type="button" class="btn">Got It</button>
+        </div>
+    </div>
+</div>
+
 <script>
 let stream = null;
 let currentStudentId = null;
@@ -498,6 +591,109 @@ let recognitionBusy = false;
 const video = document.getElementById("video");
 const canvas = document.getElementById("canvas");
 const videoOverlay = document.getElementById("videoOverlay");
+
+// IN-BROWSER MODAL DIALOG SYSTEM (No "localhost says" popups)
+function showAlert(message, type = 'info', title = null) {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById("customModalOverlay");
+        const titleEl = document.getElementById("modalTitle");
+        const bodyEl = document.getElementById("modalBody");
+        const iconEl = document.getElementById("modalIcon");
+        const cancelBtn = document.getElementById("modalCancelBtn");
+        const confirmBtn = document.getElementById("modalConfirmBtn");
+
+        const icons = {
+            success: "✅",
+            error: "❌",
+            warning: "⚠️",
+            info: "ℹ️"
+        };
+        const defaultTitles = {
+            success: "Success",
+            error: "Attention Required",
+            warning: "Notice",
+            info: "Facet Notification"
+        };
+
+        iconEl.innerText = icons[type] || "ℹ️";
+        titleEl.innerText = title || defaultTitles[type] || "Facet Biometrics";
+        bodyEl.innerText = message;
+
+        cancelBtn.style.display = "none";
+        confirmBtn.className = "btn";
+        confirmBtn.innerText = "Got It";
+
+        overlay.style.display = "flex";
+
+        const onConfirm = () => {
+            overlay.style.display = "none";
+            confirmBtn.removeEventListener("click", onConfirm);
+            resolve();
+        };
+
+        confirmBtn.addEventListener("click", onConfirm);
+    });
+}
+
+function showConfirm(message, title = "Confirm Action") {
+    return new Promise((resolve) => {
+        const overlay = document.getElementById("customModalOverlay");
+        const titleEl = document.getElementById("modalTitle");
+        const bodyEl = document.getElementById("modalBody");
+        const iconEl = document.getElementById("modalIcon");
+        const cancelBtn = document.getElementById("modalCancelBtn");
+        const confirmBtn = document.getElementById("modalConfirmBtn");
+
+        iconEl.innerText = "🗑️";
+        titleEl.innerText = title;
+        bodyEl.innerText = message;
+
+        cancelBtn.style.display = "inline-flex";
+        confirmBtn.className = "btn btn-red";
+        confirmBtn.innerText = "Yes, Delete";
+
+        overlay.style.display = "flex";
+
+        const onCancel = () => {
+            overlay.style.display = "none";
+            cleanup();
+            resolve(false);
+        };
+
+        const onConfirm = () => {
+            overlay.style.display = "none";
+            cleanup();
+            resolve(true);
+        };
+
+        function cleanup() {
+            cancelBtn.removeEventListener("click", onCancel);
+            confirmBtn.removeEventListener("click", onConfirm);
+        }
+
+        cancelBtn.addEventListener("click", onCancel);
+        confirmBtn.addEventListener("click", onConfirm);
+    });
+}
+
+// Override native window.alert globally
+window.alert = function(msg) {
+    showAlert(msg, "info");
+};
+
+async function confirmDeleteStudent(studentId, studentName) {
+    const confirmed = await showConfirm(
+        "Are you sure you want to delete " + studentName + "? All face samples and attendance history for this student will be permanently deleted.",
+        "Delete Student Record"
+    );
+    if (confirmed) {
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = "/delete_student/" + studentId;
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
 
 // START CAMERA
 async function startCamera() {
@@ -510,7 +706,7 @@ async function startCamera() {
         videoOverlay.style.display = "none";
         document.getElementById("recognitionMessage").innerText = "Camera active and streaming.";
     } catch (error) {
-        alert("Camera error: " + error.message + ". Please grant camera permissions in your browser.");
+        showAlert("Camera error: " + error.message + ". Please grant camera permissions in your browser.", "error", "Camera Access Denied");
     }
 }
 
@@ -569,13 +765,13 @@ async function safeFetchJson(url, options = {}) {
     const response = await fetch(url, options);
 
     if (response.redirected && (response.url.endsWith("/") || response.url.includes("login"))) {
-        alert("Your session has expired. Redirecting to login page...");
+        await showAlert("Your session has expired. Redirecting to login page...", "warning", "Session Expired");
         window.location.href = "/";
         throw new Error("Session expired. Redirecting to login.");
     }
 
     if (response.status === 401) {
-        alert("Session expired. Please log in again.");
+        await showAlert("Session expired. Please log in again.", "warning", "Session Expired");
         window.location.href = "/";
         throw new Error("Session expired (401)");
     }
@@ -584,7 +780,7 @@ async function safeFetchJson(url, options = {}) {
     if (!contentType.includes("application/json")) {
         const text = await response.text();
         if (text.includes("<!DOCTYPE") || text.includes("<html") || text.includes("Administrator Login")) {
-            alert("Session expired. Please log in again.");
+            await showAlert("Session expired. Please log in again.", "warning", "Session Expired");
             window.location.href = "/";
             throw new Error("Session expired (HTML returned)");
         }
@@ -630,22 +826,24 @@ document.getElementById("studentForm").addEventListener("submit", async function
             select.value = result.student_id;
 
             document.getElementById("studentForm").reset();
-            alert("Student registered successfully! Now click 'Capture Face Sample' while looking at the camera.");
+            showAlert("Student '" + result.name + "' registered successfully! Now click 'Capture Face Sample' while looking at the camera.", "success", "Student Registered");
+        } else {
+            showAlert(result.message, "error", "Registration Notice");
         }
     } catch (error) {
-        alert("Registration failed: " + error.message);
+        showAlert("Registration failed: " + error.message, "error", "Error");
     }
 });
 
 // CAPTURE FACE SAMPLE
 async function captureFace() {
     if (!currentStudentId) {
-        alert("Please register a student or select one from the 'Select Existing Student' dropdown first.");
+        showAlert("Please register a student or select one from the 'Select Existing Student' dropdown first.", "warning", "No Student Selected");
         return;
     }
 
     if (!stream || !video.videoWidth) {
-        alert("Please click 'Start Camera' first and allow camera access.");
+        showAlert("Please click 'Start Camera' first and allow camera access.", "warning", "Camera Inactive");
         return;
     }
 
@@ -692,16 +890,16 @@ async function trainModel() {
         });
 
         document.getElementById("captureMessage").innerText = result.message;
-        alert(result.message);
+        showAlert(result.message, result.success ? "success" : "warning", "Model Training");
     } catch (error) {
-        alert("Model training failed: " + error.message);
+        showAlert("Model training failed: " + error.message, "error", "Training Error");
     }
 }
 
 // START ATTENDANCE RECOGNITION
 function startRecognition() {
     if (!stream) {
-        alert("Please start the camera first.");
+        showAlert("Please start the camera first.", "warning", "Camera Inactive");
         return;
     }
     if (recognitionTimer) return;
