@@ -32,8 +32,19 @@ for folder in [DATASET, TRAINER, DATABASE_DIR]:
 MODEL_PATH = os.path.join(TRAINER, "trainer.yml")
 
 # Face detector Haar Cascade
-CASCADE_PATH = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+LOCAL_CASCADE = os.path.join(BASE_DIR, "haarcascade_frontalface_default.xml")
+if os.path.exists(LOCAL_CASCADE):
+    CASCADE_PATH = LOCAL_CASCADE
+elif hasattr(cv2, "data") and hasattr(cv2.data, "haarcascades") and os.path.exists(cv2.data.haarcascades + "haarcascade_frontalface_default.xml"):
+    CASCADE_PATH = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+else:
+    CASCADE_PATH = LOCAL_CASCADE
+
 face_detector = cv2.CascadeClassifier(CASCADE_PATH)
+if face_detector.empty():
+    print(f"CRITICAL: Failed to load Haar cascade classifier from {CASCADE_PATH}")
+else:
+    print(f"Haar cascade classifier loaded successfully from {CASCADE_PATH}")
 
 # LBPH face recognizer
 recognizer = cv2.face.LBPHFaceRecognizer_create()
@@ -211,13 +222,22 @@ def decode_image(data):
 
 def extract_face(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    equalized = cv2.equalizeHist(gray)
 
     faces = face_detector.detectMultiScale(
-        gray,
-        scaleFactor=1.2,
-        minNeighbors=5,
-        minSize=(80, 80)
+        equalized,
+        scaleFactor=1.1,
+        minNeighbors=4,
+        minSize=(50, 50)
     )
+
+    if len(faces) == 0:
+        faces = face_detector.detectMultiScale(
+            gray,
+            scaleFactor=1.1,
+            minNeighbors=3,
+            minSize=(40, 40)
+        )
 
     if len(faces) == 0:
         return None

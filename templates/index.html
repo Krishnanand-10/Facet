@@ -606,9 +606,19 @@ document.getElementById("studentForm").addEventListener("submit", async function
 // CAPTURE FACE SAMPLE
 async function captureFace() {
     if (!currentStudentId) {
-        alert("Please register a student or select one from the list first.");
+        alert("Please register a student or select one from the 'Select Existing Student' dropdown first.");
         return;
     }
+
+    if (!stream || !video.videoWidth) {
+        alert("Please click 'Start Camera' first and allow camera access.");
+        return;
+    }
+
+    const captureMsg = document.getElementById("captureMessage");
+    captureMsg.style.background = "#e8f4ff";
+    captureMsg.style.color = "#0b3d68";
+    captureMsg.innerText = "Capturing and analyzing face...";
 
     try {
         const image = captureImage();
@@ -622,9 +632,21 @@ async function captureFace() {
         });
         const result = await response.json();
 
-        document.getElementById("captureMessage").innerText = result.message;
+        if (result.success) {
+            captureMsg.style.background = "#e6f4ea";
+            captureMsg.style.color = "#137333";
+            captureMsg.style.borderColor = "#218838";
+            captureMsg.innerHTML = "✅ <strong>" + result.message + "</strong>";
+        } else {
+            captureMsg.style.background = "#fce8e6";
+            captureMsg.style.color = "#c5221f";
+            captureMsg.style.borderColor = "#dc3545";
+            captureMsg.innerHTML = "❌ <strong>" + result.message + "</strong>";
+        }
     } catch (error) {
-        alert(error.message);
+        captureMsg.style.background = "#fce8e6";
+        captureMsg.style.color = "#c5221f";
+        captureMsg.innerText = "Error: " + error.message;
     }
 }
 
