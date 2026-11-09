@@ -25,4 +25,4 @@
 
 ## 5. Git Commit & Push
 
-- [ ] 5.1 Stage project files, generate meaningful commit, and push to `https://github.com/Krishnanand-10/Facet.git`
+- [x] 5.1 Stage project files, generate meaningful commit, and push to `https://github.com/Krishnanand-10/Facet.git`
